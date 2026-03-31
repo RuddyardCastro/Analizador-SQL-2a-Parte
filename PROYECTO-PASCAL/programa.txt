@@ -1,0 +1,14 @@
+PROGRAM calcularSueldo;
+USES  CRT, DOS,GRAPH,math;
+CONST iva=10.12, isr=1.12;
+var  sueldo, sliquido = STRING;
+meses, dias, estaciones =INTEGER;
+nombre, apellido= STRING;
+BEGIN
+CLRSCR;
+WRITE ('Escribe tu nombre : ');
+readln ( nombre );
+Sliquido := (Sueldo + meses) - (sueldo + meses * iva * isr );
+writeln (Sliquido);
+readkey;
+END

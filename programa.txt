@@ -1,0 +1,3 @@
+SELECT* FROM tabla;
+UPDATE customers SET customer_email = 'johndoe@example.com' WHERE customer_name = 'John Doe';
+SELECT column1, column2 FROM table1 INNER JOIN table2 ON table1.column_name = table2.column_name;

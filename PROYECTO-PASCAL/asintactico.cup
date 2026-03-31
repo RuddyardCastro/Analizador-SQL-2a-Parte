@@ -1,0 +1,406 @@
+   
+   
+/* ---------------Seccion de declaraciones preliminares--------------------*/
+package ejemplocup;
+
+/* Import the class java_cup.runtime.*  */
+import java_cup.runtime.*;
+import java.io.FileReader;
+   
+/* Codigo del parser, se copia integramente a la clase final.
+    Agregamos el manejo de errores. */
+parser code {:
+    
+    /* Reporte de error encontrado. */
+    public void report_error(String message, Object info) {
+        StringBuilder m = new StringBuilder("Error");
+        if (info instanceof java_cup.runtime.Symbol) {
+            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+            if (s.left >= 0) {                
+                m.append(" in line "+(s.left+1));
+                if (s.right >= 0)
+                    m.append(", column "+(s.right+1));
+            }
+        }
+        m.append(" : "+message);
+        System.err.println(m);
+    }
+   
+    /* Cuando se encuentra un error de donde el sistema no puede
+        recuperarse, se lanza un error fatal. Se despliega el mensaje
+        de error y se finaliza la ejecucion. */
+    public void report_fatal_error(String message, Object info) {
+        report_error(message, info);
+        System.exit(1);
+    }
+
+    /* Metodo main para garantizar la ejecucion del analizador
+       lexico y sintactico, ademas que se pase como parametro la tabla
+       de simbolos correspondiente. */
+    public static void main(String[] args){
+        try {
+            AnalizadorSintactico asin = new AnalizadorSintactico(
+                    new AnalizadorLexico( new FileReader(args[0])));
+            Object result = asin.parse().value;
+            System.out.println("\n*** Resultados finales ***");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+:};
+   
+
+   
+/* ------------Declaracion de simbolos terminales y no terminales---------- */
+   
+/* Terminales (tokens obtenidos por el analizador lexico).  
+
+   Terminales que no tienen un valor son listados primero, los terminales que
+   tienen un valor como los enteros son listados en la segunda o demas lineas. */
+terminal           PUNTOYCOMA, OP_SUMA, OP_RESTA,OP_MULTI,OP_DIVIDE, ID,PARABRE,PARCIERRA,DOSPUNTOS,PARIZQ,PARDER;
+terminal Integer   ENTERO;
+terminal Float     NUREAL; 
+terminal String    NPROGRAM, DREADKEY,RUSE,DDOS,DCRT,SCOMA;
+terminal String    DMATH, DGRAPH,DCONST,DVAR,OP_IGUAL, DSTRING,DREAL,DENTERO,DINTEGER,DBEGIN,DEND;
+terminal String    DWRITE,DWRITELN, DCLRSCR,DREADLN;
+   
+/* No terminales usados en la seccion gramatical. 
+
+   Primero se lista los no terminales que tienen un valor Object y despues
+   se lista los no terminales que tienen un entero. Un Object se refiere a que
+   no tienen tipo, pudiendo ser entero o String. */
+non terminal Object   declaroLibrerias, tipolibreria,completar, declara; 
+non terminal Object   programapascal, nombre,inicio,cabecera, librerias; 
+non terminal Object   declaraciones,declaconstantes,tipovariable,cantidad, declaravar;
+non terminal Object   iniciobegin,cuerpobegin, simbolos,pedirdatos, datosdeusuario;
+non terminal Object   capturavalor,operaciones, operadores_y_operandos,mostrarResultado,finbegin;    
+   
+
+    programapascal ::= programapascal inicio
+                  |
+                  inicio
+                  ;
+/* inicio es donde vamos a ir derivando todo lo que contiene el programa. 
+Este tendrá cabecera, declaraciones, inicio y fin del programa y el cuerpo del programa.
+*/
+   
+   inicio ::= cabecera:e 
+                  {:
+                    System.out.println(" "); 
+                  :}
+                   PUNTOYCOMA
+                  | declaroLibrerias
+                  {:
+                    System.out.println(" "); 
+                  :} 
+                  PUNTOYCOMA
+                  |
+                  declaraciones
+                  {:
+                    System.out.println(" "); 
+                  :} 
+                  PUNTOYCOMA 
+                   |
+                  declaravar
+                  {:
+                    System.out.println(" "); 
+                  :} 
+                  PUNTOYCOMA 
+                   |
+                   iniciobegin
+                   |
+                   cuerpobegin
+                   {:
+                    System.out.println(" "); 
+                   :} 
+                  PUNTOYCOMA 
+                   |
+                   finbegin
+                   ;
+                  
+                  
+/* la cabecera esta conformada por la palabra reservada program y un id */              
+
+      cabecera ::= NPROGRAM:e nombre
+                  {:
+                    RESULT = e;
+                  :}
+                   ;
+
+        nombre::= ID:d
+                  {:
+                    RESULT=d;
+                  :}
+                  ;
+
+  /* ÁREA DONDE SE DECLARAN LAS LIBRERIAS UTILIZAR */
+
+          declaroLibrerias::= RUSE:a librerias
+          {:
+            RESULT=a;
+          :}
+          ;
+       
+
+          librerias ::= tipolibreria
+          |
+          tipolibreria SCOMA:a librerias
+          {:
+            RESULT=a;
+          :}
+          ;
+
+        tipolibreria::= DCRT:a 
+                      {:
+                        RESULT=a;
+                      :}
+                      |
+                      DDOS:d 
+                      {:
+                       RESULT=d;
+                      :}
+                      |
+                      DMATH:s
+                      {:
+                       RESULT=s;
+                      :}
+                      |
+                      DGRAPH:g 
+                      {:
+                        RESULT =g;
+                      :}
+                      ;
+/* FIN DE LIBRERIAS */
+  
+
+/*########################################  DECLACIONES DE *CONST* ################################ */
+     
+   declaraciones::= DCONST:a declaconstantes   
+                    {:
+                      RESULT=a;
+                    :}
+                    ;
+
+  declaconstantes::=ID:a OP_IGUAL:b cantidad /*Acepta solo una variable*/
+                    {:
+                      RESULT=a;                           
+                      RESULT=b;
+                    :}
+                    | ID:a OP_IGUAL:b cantidad SCOMA:c declaconstantes /*SE APLICA LA RECURSIVIDAD, SE PUEDEN AGREGAR 'N' variables*/
+                    {:
+                      RESULT=a;                           
+                      RESULT=b;
+                      RESULT=c;
+                    :}
+                    ;
+
+/* cantidad especifica tipos de numeros, Enteros y Decimales*/
+  cantidad        ::= ENTERO:b 
+                  {:
+                    RESULT=b;
+                  :}
+                  |
+                   NUREAL:b 
+                  {:
+                     RESULT=b;
+                  :}
+                   ;
+
+/*                                           FIN DECLARACIONES DE CONST                     */
+
+
+/*####################################################  DECLARACIONES DE * VAR *  ####################################*/
+
+    declaravar::= DVAR:a completar 
+                  {:
+                    RESULT=a;
+                  :}
+                  | 
+                  completar:a
+                  {:
+                    RESULT=a;
+                  :}
+                  ;
+
+
+   completar::=declara OP_IGUAL:a tipovariable
+                  {:
+                    RESULT=a;
+                  :};
+  
+   declara   ::= ID:a
+                {:
+                  RESULT=a;
+                :}
+                |
+                ID:a SCOMA:b declara
+                {:
+                  RESULT=a;
+                  RESULT=a;
+                :}
+                ;
+
+   tipovariable::= DREAL:a
+                  {: 
+                    RESULT=a;
+                  :}
+                  |
+                   DINTEGER:a
+                  {:
+                    RESULT=a;
+                  :}
+                  |
+                   DSTRING:a
+                  {:
+                    RESULT=a;
+                  :}
+                  |
+                  DENTERO:a
+                  {:
+                    RESULT=a;
+                  :}
+                  ;
+/*                  FIN           DE           VAR     */
+
+/*INICAR  EL CUERPO DEL PROGRAMA , BEGIN END*/
+
+
+     iniciobegin::=DBEGIN:a 
+                    {:
+                      RESULT=a;
+                    :}
+                    ;
+
+    cuerpobegin::=DCLRSCR:a  /*Se agrega CLRSRC;*/
+                  {:
+                    RESULT=a;
+                  :}
+                  |
+                  pedirdatos       /*pedir datos se refiere a: WRITE ('Escribe tu nombre : ');*/
+                  ;
+
+    pedirdatos::= DWRITE:a PARABRE:b  datosdeusuario DOSPUNTOS:c PARCIERRA:d  /* datosdeusuario seria lo que se ingresa por teclado*/
+                  {:
+                    RESULT=a;
+                    RESULT=b;
+                    RESULT=c;
+                    RESULT=d;
+                  :}
+                  |
+                  capturavalor; /*capturar valor se refiere a: readln ( nombre );*/
+
+    datosdeusuario::= ID:a  /* RECURSIVIDAD PARA ESCRIBIR N. ID*/
+                      {:
+                        RESULT=a;
+                      :}
+                      |
+                      ID:a  datosdeusuario
+                      {:
+                        RESULT=a;
+                      :}
+                      ;
+
+    capturavalor::=DREADLN:a PARIZQ:b datosdeusuario PARDER:d /*Se hace la derivación para *readln ( nombre ); */
+                  {:
+                    RESULT=a;
+                    RESULT=b;
+                    RESULT=d;
+                  :}
+                   |
+                   operaciones; /*Se refiere a lo que realiza el programa, en este caso cálculos*/
+
+    operaciones::= ID:a DOSPUNTOS:b OP_IGUAL:c operadores_y_operandos /* PARA LAS OPERACINES DE SUMA, RESTA, ETC*/
+                   {:
+                      RESULT=a;
+                      RESULT=b;
+                      RESULT=c;
+                   :}
+                    |
+                    mostrarResultado /* mostrarResultado se refiere a linea de resultados*/
+                    ;
+
+    operadores_y_operandos::=  ID:a PARDER:b /*Aqui se realiza las linea Sueldo + meses - sueldo + meses * iva * isr; con recursividad*/
+                              {:
+                                  RESULT=a;
+                                  RESULT=b;
+                              :}
+                              |
+                              PARIZQ:a ID:b  simbolos  operadores_y_operandos
+                              {:
+                                  RESULT=a;
+                                  RESULT=b;:}
+                              |
+                              ID:a PARDER:b simbolos operadores_y_operandos
+                           {:
+                                  RESULT=a;
+                                  RESULT=b;
+                              :}
+                              |
+                              ID:a simbolos operadores_y_operandos
+                              {:
+                                  RESULT=a;
+                              :} 
+                              |
+                               ID:a/*Aqui se realiza las linea Sueldo + meses - sueldo + meses * iva * isr; con recursividad*/
+                              {:
+                                  RESULT=a;
+                              :} 
+                              |
+                               simbolos ID:a simbolos operadores_y_operandos
+                              {:
+                                  RESULT=a;
+                              :} 
+                             ;                           
+
+      simbolos::= OP_SUMA:a /*AREA DE OPERANDOS*/ 
+                  {:
+                    RESULT=a;
+                  :}
+                  |
+                  OP_RESTA:a
+                  {:
+                    RESULT=a;
+                  :}
+                  |
+                  OP_MULTI:a
+                  {:
+                    RESULT=a;
+                  :}
+                  |
+                  OP_DIVIDE:a
+                  {:
+                    RESULT=a;
+                  :}
+                  ;
+
+    mostrarResultado::= DWRITELN:a PARIZQ:b datosdeusuario PARDER:c /* LA LINEA DE writeln (Sliquido);;*/
+                        {:
+                          RESULT=a;
+                          RESULT=b;
+                          RESULT=c;
+                        :}
+                        | 
+                        DREADKEY:a /* ULTIMA LINEA DEL PROGRAMA readkey;*/
+                        {:
+                          RESULT=a;
+                        :}
+                        ;
+
+    finbegin::=DEND:a 
+                {:
+                  RESULT=a;
+                :}
+                ;
+
+
+
+   
+
+
+
+
+
+
+   
+
+

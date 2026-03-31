@@ -1,0 +1,123 @@
+/* ---------------Seccion de declaraciones preliminares--------------------*/
+package ejemplocup;
+
+/* Import the class java_cup.runtime.* */
+import java_cup.runtime.*;
+import java.io.FileReader;
+   
+/* Codigo del parser, se copia integramente a la clase final.
+    Agregamos el manejo de errores. */
+parser code {:
+    
+    /* Reporte de error encontrado. */
+    public void report_error(String message, Object info) {
+        StringBuilder m = new StringBuilder("Error");
+        if (info instanceof java_cup.runtime.Symbol) {
+            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+            if (s.left >= 0) {                
+                m.append(" in line "+(s.left+1));
+                if (s.right >= 0)
+                    m.append(", column "+(s.right+1));
+            }
+        }
+        m.append(" : "+message);
+        System.err.println(m);
+    }
+   
+    /* Cuando se encuentra un error de donde el sistema no puede
+        recuperarse, se lanza un error fatal. Se despliega el mensaje
+        de error y se finaliza la ejecucion. */
+    public void report_fatal_error(String message, Object info) {
+        report_error(message, info);
+        System.exit(1);
+    }
+
+    /* Metodo main para garantizar la ejecucion del analizador
+       lexico y sintactico, ademas que se pase como parametro la tabla
+       de simbolos correspondiente. */
+    public static void main(String[] args){
+        try {
+            AnalizadorSintactico asin = new AnalizadorSintactico(
+                    new AnalizadorLexico( new FileReader(args[0])));
+            Object result = asin.parse().value;
+            System.out.println("\n*** Resultados finales ***");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+:};
+    
+
+   
+/* ------------Declaracion de simbolos terminales y no terminales---------- */
+   
+/* Terminales (tokens obtenidos por el analizador lexico).  */
+
+ /* Terminales que no tienen un valor son listados primero, los terminales que
+   tienen un valor como los enteros son listados en la segunda o demas lineas. */
+
+/* Terminales sin valor asociado */
+terminal           SELECT, FROM, WHERE, UPDATE, SET;
+terminal           ASTERISCO, IGUAL, COMA, PUNTOYCOMA, PAR_A, PAR_C;
+terminal           INNER, JOIN, ON, PUNYO;
+
+/* Terminales con valor */
+terminal Integer   ENTERO;
+terminal Float     NUREAL; 
+terminal String    ID, LITERAL_STR;
+
+
+/* No terminales usados en la seccion gramatical. 
+
+   Primero se lista los no terminales que tienen un valor Object y despues
+   se lista los no terminales que tienen un entero. Un Object se refiere a que
+   no tienen tipo, pudiendo ser entero o String. */
+
+non terminal Object   inicio, sentencia, instruccion, clausula_where, valor, lista_campos, nombre_tabla; 
+non terminal Object   nombre_compuesto, clausula_join;
+
+    inicio ::= sentencia
+             | sentencia inicio ;
+
+/* inicio es donde vamos a ir derivando todo lo que contiene el programa. 
+Este tendrá cabecera, declaraciones, inicio y fin del programa y el cuerpo del programa.
+*/
+ 
+
+/* 1. La cabecera es el bloque completo: program nombre; */
+sentencia ::= instruccion PUNTOYCOMA
+            {: System.out.println("Sentencia SQL reconocida"); :} ;
+
+/* 2. El inicio une los bloques sin símbolos extra entre ellos */
+instruccion ::= SELECT ASTERISCO FROM nombre_tabla clausula_join clausula_where
+                {: System.out.println("Operacion SELECT * detectada"); :}
+              | SELECT lista_campos FROM nombre_tabla clausula_join clausula_where
+                {: System.out.println("Operacion SELECT con campos detectada"); :}
+              | UPDATE nombre_tabla SET nombre_compuesto IGUAL valor clausula_where
+                {: System.out.println("Operacion UPDATE detectada"); :} ;
+
+
+  /*INICAR  EL CUERPO DEL PROGRAMA , BEGIN END*/
+
+
+    clausula_join ::= INNER JOIN nombre_tabla ON nombre_compuesto IGUAL nombre_compuesto
+                    {: System.out.println("Clausula JOIN detectada"); :}
+                    | /* vacio */ ;
+
+
+    clausula_where ::= WHERE nombre_compuesto IGUAL valor
+                    {: System.out.println("Filtro WHERE detectado"); :}
+                    | /* vacio */ ;
+
+    lista_campos ::= nombre_compuesto 
+                   | nombre_compuesto COMA lista_campos ;
+
+    valor ::= ENTERO:e {: RESULT=e; :} 
+            | NUREAL:n {: RESULT=n; :}
+            | LITERAL_STR:s {: RESULT=s; :} 
+            | ID:i {: RESULT=i; :} ;
+
+    nombre_tabla ::= ID:d {: RESULT = d; :} ;
+
+    nombre_compuesto ::= ID 
+                   | ID PUNYO ID ;
