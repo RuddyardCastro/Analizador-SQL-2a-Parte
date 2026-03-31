@@ -58,59 +58,125 @@ NumReal = {Entero} "." [0-9]*
 
 /* -------------------- Seccion de reglas lexicas ------------------ */
    
+/* EXPRESIONES REGULARES */
+Entero = 0 | [1-9][0-9]* 
+Identificador = [a-zA-Z][A-Za-z0-9_]* 
+NumReal = {Entero} "." [0-9]* 
+
+%% //fin de opciones 
+
+/* -------------------- Seccion de reglas lexicas ------------------ */
+   
 <YYINITIAL> {
     
     /* 1. ESPACIOS */
-    {Espacio}           { /* ignora el espacio */ } 
+    {Espacio}           { /* ignora el espacio */ }
 
-    /* 2. PALABRAS a MySQL */
+    /* 2. PALABRAS RESERVADAS SQL (DML) */
     
-    "SELECT" | "select"    { return symbol(sym.SELECT); }
+    "SELECT" | "select"    { System.out.print("SELECT ");
+                          return symbol(sym.SELECT); }
+
+    "FROM" | "from"        { System.out.print("FROM ");
+                              return symbol(sym.FROM); }
+
+    "WHERE" | "where"      { System.out.print("WHERE ");
+                           return symbol(sym.WHERE); }
+
+    "UPDATE" | "update"    { System.out.print("UPDATE ");
+                              return symbol(sym.UPDATE); }
+
+    "SET" | "set"          { System.out.print("SET ");
+                             return symbol(sym.SET); }
+
+    "INNER" | "inner"      { System.out.print("INNER ");
+                              return symbol(sym.INNER); }
+
+    "JOIN"  | "join"       { System.out.print("JOIN ");
+                              return symbol(sym.JOIN); }
+
+    "ON"    | "on"         { System.out.print("ON ");
+                            return symbol(sym.ON); }
 
 
-    "FROM" | "from"        { return symbol(sym.FROM); }
+    /* DML - Ordenación */
+    "ORDER" | "order"      { System.out.print("ORDER ");
+                             return symbol(sym.ORDER); }
+
+    "BY" | "by"            { System.out.print("BY ");
+                              return symbol(sym.BY); }
+
+    "ASC" | "asc"          { System.out.print("ASC ");
+                               return symbol(sym.ASC); }
+
+    "DESC" | "desc"        { System.out.print("DESC ");
+                            return symbol(sym.DESC); }
 
 
-    "WHERE" | "where"      { return symbol(sym.WHERE); }
+    /* DDL - Definición de Datos */
+    "CREATE" | "create"    { System.out.print("CREATE ");
+                              return symbol(sym.CREATE); }
 
+    "DATABASE" | "database"{ System.out.print("DATABASE ");
+                             return symbol(sym.DATABASE); }
 
-    
+    "TABLE" | "table"      { System.out.print("TABLE ");
+                           return symbol(sym.TABLE); }
 
-
-    "UPDATE" | "update"    { return symbol(sym.UPDATE); }
-
-
-    "SET" | "set"          { return symbol(sym.SET); }
-
-    
-
-
-    "INNER" | "inner" { return symbol(sym.INNER); }
-
-        "JOIN"  | "join"  { return symbol(sym.JOIN); }
-
-    "ON"    | "on"    { return symbol(sym.ON); }
+    "USE" | "use"          { System.out.print("USE ");
+                            return symbol(sym.USE); }
 
 
     /* 3. OPERADORES Y SÍMBOLOS SQL */
 
-    "*"                    { return symbol(sym.ASTERISCO); }
-    "="                    { return symbol(sym.IGUAL); }
-    ","                    { return symbol(sym.COMA); }
-    ";"                    { return symbol(sym.PUNTOYCOMA); }
-    "("                    { return symbol(sym.PAR_A); }
-    ")"                    { return symbol(sym.PAR_C); }
-    "."                    { return symbol(sym.PUNYO); }
+    "*"                    { System.out.print("* ");
+                             return symbol(sym.ASTERISCO); }
 
-    /* 4. LITERALES: Cadenas de texto con comilla simple */
+    "="                    { System.out.print("= ");
+                            return symbol(sym.IGUAL); }
 
-    "'" [^']* "'"          { return symbol(sym.LITERAL_STR, yytext()); }
+    ","                    { System.out.print(", ");
+                             return symbol(sym.COMA); }
 
-    /* 5. EXPRESIONES REGULARES: Identificadores y Números */
+    ";"                    { System.out.print("; ");
+                            return symbol(sym.PUNTOYCOMA); }
+
+    "("                    { System.out.print("( ");
+                             return symbol(sym.PAR_A); }
+
+    ")"                    { System.out.print(") ");
+                            return symbol(sym.PAR_C); }
+
+    "."                    { System.out.print(". ");
+                             return symbol(sym.PUNYO); }
+
+
+    /*  Operadores de comparación  */
+    ">"                    { System.out.print("> ");
+                            return symbol(sym.MAYOR); }
+
+    "<"                    { System.out.print("< ");
+                             return symbol(sym.MENOR); }
+
+
+    /*  Cadenas de texto con comilla simple */
+
+    /*[^']:esto significa la negacion de ´*/
+
+    "'" [^']* "'"          { System.out.print("LITERAL_STR ");
+                            return symbol(sym.LITERAL_STR, yytext()); }
+
+
+    /*  Identificadores y Números */
     
-    {Identificador}        { return symbol(sym.ID, yytext()); }
-    {Entero}               { return symbol(sym.ENTERO, Integer.valueOf(yytext())); }
-    {NumReal}              { return symbol(sym.NUREAL, Float.valueOf(yytext())); }
+    {Identificador}        { System.out.print("ID ");
+                             return symbol(sym.ID, yytext()); }
+
+    {Entero}               { System.out.print("ENTERO ");
+                            return symbol(sym.ENTERO, Integer.valueOf(yytext())); }
+
+    {NumReal}              { System.out.print("NUREAL ");
+                             return symbol(sym.NUREAL, Float.valueOf(yytext())); }
 }
 
 /* Error de token ilegal */
