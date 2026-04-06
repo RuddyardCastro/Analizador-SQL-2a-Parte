@@ -54,19 +54,8 @@ Entero = 0 | [1-9][0-9]*
 Identificador = [a-zA-Z][A-Za-z0-9_]*
 NumReal = {Entero} "." [0-9]*
 
-%% //fin de opciones
+%% // --- SEGUNDO SEPARADOR: Inicio de Reglas Léxicas (Solo debe haber uno aquí) ---
 
-/* -------------------- Seccion de reglas lexicas ------------------ */
-   
-/* EXPRESIONES REGULARES */
-Entero = 0 | [1-9][0-9]* 
-Identificador = [a-zA-Z][A-Za-z0-9_]* 
-NumReal = {Entero} "." [0-9]* 
-
-%% //fin de opciones 
-
-/* -------------------- Seccion de reglas lexicas ------------------ */
-   
 <YYINITIAL> {
     
     /* 1. ESPACIOS */
@@ -107,17 +96,17 @@ NumReal = {Entero} "." [0-9]*
                               return symbol(sym.BY); }
 
     "ASC" | "asc"          { System.out.print("ASC ");
-                               return symbol(sym.ASC); }
+                             return symbol(sym.ASC); }
 
     "DESC" | "desc"        { System.out.print("DESC ");
                             return symbol(sym.DESC); }
 
 
-    /* DDL - Definición de Datos */
+   /* DDL - Definición de Datos */
     "CREATE" | "create"    { System.out.print("CREATE ");
                               return symbol(sym.CREATE); }
 
-    "DATABASE" | "database"{ System.out.print("DATABASE ");
+    "DATABASE" | "database" { System.out.print("DATABASE ");
                              return symbol(sym.DATABASE); }
 
     "TABLE" | "table"      { System.out.print("TABLE ");
@@ -125,7 +114,6 @@ NumReal = {Entero} "." [0-9]*
 
     "USE" | "use"          { System.out.print("USE ");
                             return symbol(sym.USE); }
-
 
     /* 3. OPERADORES Y SÍMBOLOS SQL */
 
@@ -151,7 +139,7 @@ NumReal = {Entero} "." [0-9]*
                              return symbol(sym.PUNYO); }
 
 
-    /*  Operadores de comparación  */
+    /* Operadores de comparación  */
     ">"                    { System.out.print("> ");
                             return symbol(sym.MAYOR); }
 
@@ -159,7 +147,7 @@ NumReal = {Entero} "." [0-9]*
                              return symbol(sym.MENOR); }
 
 
-    /*  Cadenas de texto con comilla simple */
+    /* Cadenas de texto con comilla simple */
 
     /*[^']:esto significa la negacion de ´*/
 
@@ -167,7 +155,7 @@ NumReal = {Entero} "." [0-9]*
                             return symbol(sym.LITERAL_STR, yytext()); }
 
 
-    /*  Identificadores y Números */
+    /* Identificadores y Números */
     
     {Identificador}        { System.out.print("ID ");
                              return symbol(sym.ID, yytext()); }
