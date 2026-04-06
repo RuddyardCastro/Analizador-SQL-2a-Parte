@@ -114,6 +114,21 @@ NumReal = {Entero} "." [0-9]*
 
     "USE" | "use"          { System.out.print("USE ");
                             return symbol(sym.USE); }
+ 
+
+
+        /*Tipos de datos SQL para el cretate*/
+
+        "INT" | "int" { return symbol(sym.INT); } 
+
+        "VARCHAR" | "varchar" { return symbol(sym.VARCHAR); }
+
+        "PRIMARY" | "primary" { return symbol(sym.PRIMARY); }
+
+            "KEY" | "key" { return symbol(sym.KEY); }
+
+
+
 
     /* 3. OPERADORES Y SÍMBOLOS SQL */
 
