@@ -32,7 +32,7 @@ parser code {:
             AnalizadorSintactico asin = new AnalizadorSintactico(
                     new AnalizadorLexico( new FileReader(args[0])));
             Object result = asin.parse().value;
-            System.out.println("\n*** Resultados finales ***");
+            System.out.println("\n*** Resultados SQL***");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -102,35 +102,29 @@ terminal String    ID, LITERAL_STR;
 inicio ::= sentencia
          | sentencia inicio ;
 
-sentencia ::= instruccion PUNTOYCOMA
-            {: System.out.println("Sentencia SQL reconocida"); :} ;
+sentencia ::= instruccion:i PUNTOYCOMA 
+            {: System.out.println("--- Instrucción Procesada ---"); :} ;
 
 instruccion ::= 
                 /* SELECT expandido con ORDER BY */
 
                 SELECT ASTERISCO FROM nombre_tabla clausula_join clausula_where clausula_order
-                {: System.out.println("Operacion SELECT * detectada"); :}
 
               | SELECT lista_campos FROM nombre_tabla clausula_join clausula_where clausula_order
-                {: System.out.println("Operacion SELECT con campos detectada"); :}
                
 
 
                 /* UPDATE original */
               | UPDATE nombre_tabla SET nombre_compuesto IGUAL valor clausula_where
-                {: System.out.println("Operacion UPDATE detectada"); :}
                 
 
 
-                /*  INSTRUCCIONES DDL */
+                /* INSTRUCCIONES DDL */
               | CREATE DATABASE ID
-                {: System.out.println("Comando DDL: CREATE DATABASE detectado"); :}
 
               | USE ID
-                {: System.out.println("Comando DDL: USE DATABASE detectado"); :}
 
-              | CREATE TABLE nombre_tabla PAR_A lista_columnas PAR_C
-                {: System.out.println("Comando DDL: CREATE TABLE detectado"); :} ;
+              | CREATE TABLE nombre_tabla PAR_A lista_columnas PAR_C ;
 
 
 
@@ -154,7 +148,6 @@ tipo_dato ::= INT
 
 /* Clausula JOIN  */
 clausula_join ::= INNER JOIN nombre_tabla ON nombre_compuesto IGUAL nombre_compuesto
-                {: System.out.println("Clausula JOIN detectada"); :}
                 | /* vacio */ ;
 
 
@@ -162,16 +155,14 @@ clausula_join ::= INNER JOIN nombre_tabla ON nombre_compuesto IGUAL nombre_compu
 
 /* Clausula WHERE expandida para usar comparadores como > o < */
 clausula_where ::= WHERE nombre_compuesto comparador valor
-                {: System.out.println("Filtro WHERE detectado"); :}
                 | /* vacio */ ;
 
 comparador ::= IGUAL | MAYOR | MENOR ;
 
 
 
-/*  Clausula ORDER BY */
+/* Clausula ORDER BY */
 clausula_order ::= ORDER BY lista_order
-                 {: System.out.println("Clausula ORDER BY detectada"); :}
                  | /* vacio */ ;
 
 lista_order ::= elemento_order
