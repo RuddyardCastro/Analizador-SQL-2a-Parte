@@ -157,7 +157,7 @@ NumReal = {Entero} "." [0-9]*
                             return symbol(sym.PAR_C); }
 
     "."                    { System.out.print(". ");
-                             return symbol(sym.PUNYO); }
+                             return symbol(sym.PUNTO); }
 
 
     /* Operadores de comparación  */
@@ -172,7 +172,7 @@ NumReal = {Entero} "." [0-9]*
 
     /*[^']:esto significa la negacion de ´*/
 
-    "'" [^']* "'"          { System.out.print("LITERAL_STR ");
+    "'" [^]* "'"          { System.out.print("LITERAL_STR ");
                             return symbol(sym.LITERAL_STR, yytext()); }
 
 
