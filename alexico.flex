@@ -117,15 +117,21 @@ NumReal = {Entero} "." [0-9]*
  
 
 
-        /*Tipos de datos SQL para el cretate*/
+        
+      /* Palabras reservadas para tipos de datos y restricciones */
 
-        "INT" | "int" { return symbol(sym.INT); } 
+    "INT" | "int" { System.out.print("TIPO_INT "); 
+        return symbol(sym.INT);  } 
 
-        "VARCHAR" | "varchar" { return symbol(sym.VARCHAR); }
+    "VARCHAR" | "varchar" {  System.out.print("TIPO_VARCHAR "); 
+    return symbol(sym.VARCHAR); }
 
-        "PRIMARY" | "primary" { return symbol(sym.PRIMARY); }
+    "PRIMARY" | "primary" {  System.out.print("PRIMARY "); 
+        return symbol(sym.PRIMARY); }
 
-            "KEY" | "key" { return symbol(sym.KEY); }
+    "KEY" | "key" { System.out.print("KEY "); 
+     return symbol(sym.KEY); }
+
 
 
 

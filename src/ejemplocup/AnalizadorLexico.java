@@ -839,11 +839,13 @@ class AnalizadorLexico implements java_cup.runtime.Scanner {
           }
         case 55: break;
         case 21: 
-          { return symbol(sym.INT);
+          { System.out.print("TIPO_INT "); 
+        return symbol(sym.INT);
           }
         case 56: break;
         case 22: 
-          { return symbol(sym.KEY);
+          { System.out.print("KEY "); 
+     return symbol(sym.KEY);
           }
         case 57: break;
         case 23: 
@@ -897,11 +899,13 @@ class AnalizadorLexico implements java_cup.runtime.Scanner {
           }
         case 67: break;
         case 33: 
-          { return symbol(sym.PRIMARY);
+          { System.out.print("PRIMARY "); 
+        return symbol(sym.PRIMARY);
           }
         case 68: break;
         case 34: 
-          { return symbol(sym.VARCHAR);
+          { System.out.print("TIPO_VARCHAR "); 
+    return symbol(sym.VARCHAR);
           }
         case 69: break;
         case 35: 
