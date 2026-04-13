@@ -102,8 +102,8 @@ terminal String    ID, LITERAL_STR;
 inicio ::= sentencia
          | sentencia inicio ;
 
-sentencia ::= instruccion:i PUNTOYCOMA 
-            {: System.out.println("--- Instrucción Procesada ---"); :} ;
+sentencia ::= instruccion PUNTOYCOMA 
+            {: System.out.println("\nInstrucción SQL finalizada con éxito.\n"); :} ;
 
 instruccion ::= 
                 /* SELECT expandido con ORDER BY */
@@ -139,7 +139,7 @@ columna ::= ID tipo_dato
 
 
 
-/* Regla para soportar los tipos de datos del programa.txt */
+/* Regla para soportar los tipos de datos  */
 tipo_dato ::= INT
             | VARCHAR PAR_A ENTERO PAR_C ;
 
