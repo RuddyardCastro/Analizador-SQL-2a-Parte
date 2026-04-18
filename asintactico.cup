@@ -104,7 +104,10 @@ inicio ::= inicio sentencia
          | sentencia ;
 
 sentencia ::= instruccion PUNTOYCOMA 
-            {: System.out.println("\n Cadena SQL reconizida.\n"); :} ;
+            {: 
+                
+            :} ;
+
 
 /* --- Definición de Instrucciones --- */
 instruccion ::= 
