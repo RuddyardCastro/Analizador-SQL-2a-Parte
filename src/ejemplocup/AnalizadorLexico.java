@@ -779,7 +779,7 @@ class AnalizadorLexico implements java_cup.runtime.Scanner {
           }
         case 43: break;
         case 9: 
-          { System.out.print("; ");
+          { System.out.print(";\n");
                             return symbol(sym.PUNTOYCOMA);
           }
         case 44: break;

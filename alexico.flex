@@ -147,7 +147,7 @@ NumReal = {Entero} "." [0-9]*
     ","                    { System.out.print(", ");
                              return symbol(sym.COMA); }
 
-    ";"                    { System.out.print("; ");
+    ";"                    { System.out.print(";\n");
                             return symbol(sym.PUNTOYCOMA); }
 
     "("                    { System.out.print("( ");

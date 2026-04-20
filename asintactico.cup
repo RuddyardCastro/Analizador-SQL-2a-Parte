@@ -104,84 +104,93 @@ inicio ::= inicio sentencia
          | sentencia ;
 
 sentencia ::= instruccion PUNTOYCOMA 
-            {: System.out.println("\n Cadena SQL reconizida.\n"); :} ;
+            {: 
+         
+            :} ;
+
 
 /* --- Definición de Instrucciones --- */
+
 instruccion ::= 
-               
-                SELECT campos_select FROM nombre_tabla clausula_join clausula_where clausula_order
-
+                SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_order:co
+                {: RESULT = cs; :}
                 
-              | UPDATE nombre_tabla SET nombre_compuesto IGUAL valor clausula_where
+              | UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
+                {: RESULT = v; :}
 
-                /* INSTRUCCIONES DDL */
-              | CREATE DATABASE ID
-              | USE ID
-              | CREATE TABLE nombre_tabla PAR_A lista_columnas PAR_C ;
+              | CREATE DATABASE ID:id
+                {: RESULT = id; :}
+              | USE ID:id
+                {: RESULT = id; :}
+              | CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
+                {: RESULT = lc; :} ;
 
-/* --- MANEJO DE LISTAS (RECURSIVIDAD A LA IZQUIERDA) --- */
-
-
+/* --- MANEJO DE LISTAS --- */
 campos_select ::= ASTERISCO 
-                | lista_campos ;
+                {: RESULT = "*"; :}
+                | lista_campos:lc 
+                {: RESULT = lc; :} ;
 
-lista_campos ::= lista_campos COMA nombre_compuesto
-               | nombre_compuesto ;
+lista_campos ::= lista_campos:lc COMA nombre_compuesto:nc
+                {: RESULT = nc; :}
+               | nombre_compuesto:nc 
+                {: RESULT = nc; :} ;
 
-/* Columnas de CREATE TABLE: crecen hacia la izquierda */
-lista_columnas ::= lista_columnas COMA columna 
-                 | columna ;
+lista_columnas ::= lista_columnas:lc COMA columna:c 
+                {: RESULT = c; :}
+                 | columna:c 
+                {: RESULT = c; :} ;
 
-/* Elementos de ORDER BY: crecen hacia la izquierda */
-lista_order ::= lista_order COMA elemento_order
-              | elemento_order ;
+lista_order ::= lista_order:lo COMA elemento_order:eo
+                {: RESULT = eo; :}
+              | elemento_order:eo 
+                {: RESULT = eo; :} ;
 
 /* --- Reglas Complementarias --- */
-
-columna ::= ID tipo_dato
-          | ID tipo_dato PRIMARY KEY ;
+columna ::= ID:id tipo_dato:td
+          {: RESULT = id; :}
+          | ID:id tipo_dato:td PRIMARY KEY 
+          {: RESULT = id; :} ;
 
 tipo_dato ::= INT
-            | VARCHAR PAR_A ENTERO PAR_C ;
+            {: RESULT = "INT"; :}
+            | VARCHAR PAR_A ENTERO:e PAR_C 
+            {: RESULT = e; :} ;
 
+clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2
+                {: RESULT = nt; :}
+                | /* vacio */ 
+                {: RESULT = null; :} ;
 
+clausula_where ::= WHERE nombre_compuesto:nc comparador:cp valor:v
+                {: RESULT = v; :}
+                | /* vacio */ 
+                {: RESULT = null; :} ;
 
-clausula_join ::= INNER JOIN nombre_tabla ON nombre_compuesto IGUAL nombre_compuesto
-                | /* vacio */ ;
+comparador ::= IGUAL  {: RESULT = "="; :} 
+             | MAYOR  {: RESULT = ">"; :} 
+             | MENOR  {: RESULT = "<"; :} ;
 
+clausula_order ::= ORDER BY lista_order:lo
+                 {: RESULT = lo; :}
+                 | /* vacio */ 
+                 {: RESULT = null; :} ;
 
-
-clausula_where ::= WHERE nombre_compuesto comparador valor
-                | /* vacio */ ;
-
-
-
-comparador ::= IGUAL | MAYOR | MENOR ;
-
-
-
-clausula_order ::= ORDER BY lista_order
-                 | /* vacio */ ;
-
-
-
-elemento_order ::= nombre_compuesto
-                 | nombre_compuesto ASC
-                 | nombre_compuesto DESC ;
-
-
+elemento_order ::= nombre_compuesto:nc
+                 {: RESULT = nc; :}
+                 | nombre_compuesto:nc ASC
+                 {: RESULT = nc; :}
+                 | nombre_compuesto:nc DESC 
+                 {: RESULT = nc; :} ;
 
 valor ::= ENTERO:e      {: RESULT=e; :} 
         | NUREAL:n      {: RESULT=n; :}
         | LITERAL_STR:s {: RESULT=s; :} 
         | ID:i          {: RESULT=i; :} ;
 
+nombre_tabla ::= ID:d   {: RESULT = d; :} ;
 
-
-nombre_tabla ::= ID:d {: RESULT = d; :} ;
-
-
-
-
-nombre_compuesto ::= ID 
-                   | ID PUNTO ID ;
+nombre_compuesto ::= ID:id 
+                   {: RESULT = id; :}
+                   | ID:id1 PUNTO ID:id2 
+                   {: RESULT = id2; :} ;
