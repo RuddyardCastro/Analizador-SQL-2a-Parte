@@ -48,8 +48,9 @@ terminal           SELECT, FROM, WHERE, UPDATE, SET;
 terminal           ASTERISCO, IGUAL, COMA, PUNTOYCOMA, PAR_A, PAR_C;
 
 terminal           INNER, JOIN, ON, PUNTO;
+/*Agregados en el proyecto final*/
 
-
+terminal           INSERT, INTO, VALUES, FLOAT;
 
 /* NUEVOS TERMINALES (DDL y Ordenación) */
 
@@ -93,9 +94,9 @@ terminal String    ID, LITERAL_STR;
 
     non terminal Object   definicion_tabla, lista_columnas, columna, tipo_dato, campos_select;
 
+/*Agregados par proy final*/
 
-
-
+non terminal Object   lista_valores, elemento_valor;
 
 
 
@@ -109,21 +110,35 @@ sentencia ::= instruccion PUNTOYCOMA
             :} ;
 
 
-/* --- Definición de Instrucciones --- */
 
 instruccion ::= 
                 SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_order:co
                 {: RESULT = cs; :}
-                
-              | UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
+              |
+                UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
                 {: RESULT = v; :}
+              |
+                CREATE DATABASE ID:id
+                {: RESULT = id; :}
+              |
+                USE ID:id
+                {: RESULT = id; :}
+              |
+                CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
+                {: RESULT = lc; :}
+              |
+                INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C
+                {: RESULT = lv; :} ;
 
-              | CREATE DATABASE ID:id
-                {: RESULT = id; :}
-              | USE ID:id
-                {: RESULT = id; :}
-              | CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
-                {: RESULT = lc; :} ;
+/* --- Nuevas reglas para el manejo de listas de valores --- */
+lista_valores ::= lista_valores:lv COMA elemento_valor:ev
+                {: RESULT = ev; :}
+                |
+                elemento_valor:ev
+                {: RESULT = ev; :} ;
+
+elemento_valor ::= valor:v
+                 {: RESULT = v; :} ;
 
 /* --- MANEJO DE LISTAS --- */
 campos_select ::= ASTERISCO 
@@ -154,8 +169,15 @@ columna ::= ID:id tipo_dato:td
 
 tipo_dato ::= INT
             {: RESULT = "INT"; :}
-            | VARCHAR PAR_A ENTERO:e PAR_C 
-            {: RESULT = e; :} ;
+            |
+            VARCHAR PAR_A ENTERO:e PAR_C 
+            {: RESULT = e; :}
+            |
+            FLOAT
+            {: RESULT = "FLOAT"; :}
+            |
+            FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C
+            {: RESULT = "FLOAT_DECIMAL"; :} ;
 
 clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2
                 {: RESULT = nt; :}

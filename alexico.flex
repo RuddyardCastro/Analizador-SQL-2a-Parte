@@ -88,6 +88,18 @@ NumReal = {Entero} "." [0-9]*
                             return symbol(sym.ON); }
 
 
+/* palabras para el proy final */
+    "INSERT" | "insert"    { System.out.print("INSERT ");
+                               return symbol(sym.INSERT); }
+    "INTO"   | "into"      { System.out.print("INTO ");
+                          return symbol(sym.INTO); }
+    "VALUES" | "values"    { System.out.print("VALUES ");
+                        return symbol(sym.VALUES); }
+
+    /* Nuevo tipo de dato FLOAT */
+    "FLOAT"  | "float"     { System.out.print("TIPO_FLOAT "); 
+                             return symbol(sym.FLOAT); }
+
     /* DML - Ordenación */
     "ORDER" | "order"      { System.out.print("ORDER ");
                              return symbol(sym.ORDER); }
