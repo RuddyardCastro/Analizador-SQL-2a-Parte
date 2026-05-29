@@ -1,50 +1,7 @@
-CREATE DATABASE MiBaseDatos;
-
-USE MiBaseDatos;
-
-CREATE TABLE Empleados (
-    id INT PRIMARY KEY,
-    nombres VARCHAR(50),
-    apellidos VARCHAR(50),
-    salario INT
-);
-
-SELECT * FROM empleados;
-
-SELECT nombres
-FROM empleados;
-
-SELECT nombres, apellidos
-FROM empleados;
-
-SELECT
-  nombres,
-  apellidos,
-  salario
-FROM empleados
-WHERE salario > 3800;
-
-SELECT
-  nombres,
-  apellidos
-FROM empleados
-WHERE nombre = 'Lucía';
-
-SELECT
- nombres,
- apellidos
-FROM empleados
-ORDER BY apellidos;
-
-SELECT
-  nombres,
-  apellidos
-FROM empleados
-ORDER BY apellidos DESC;
-
-SELECT
-  nombres,
-  apellidos,
-  salario
-FROM empleados
-ORDER BY salario DESC, apellidos ASC;
+CREATE DATABASE Almacen2;
+USE Almacen2;
+CREATE TABLE nombre_cliente(id int, nombre varchar(50));
+CREATE TABLE productos (idProducto int, nombreProducto varchar(50), precio float(18,2));
+INSERT INTO nombre_cliente (id, nombre) values (1,'Daniel');
+INSERT INTO productos (idProducto, nombreProducto, precio) values (1,'Arroz',3);
+SELECT * FROM productos;
