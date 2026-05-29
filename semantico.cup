@@ -1,0 +1,28 @@
+instruccion ::= 
+    SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_order:co
+        {: RESULT = cs; :}
+  |
+    UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
+        {: RESULT = v; :}
+  |
+    CREATE DATABASE ID:id
+        {: 
+            VerificadorSemantico.registrarCreateDatabase(id.toString());
+            RESULT = id;
+        :}
+  |
+    USE ID:id
+        {: 
+            VerificadorSemantico.registrarUseDatabase(id.toString());
+            RESULT = id;
+        :}
+  |
+    CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
+        {: 
+            VerificadorSemantico.verificarCreateTable(nt.toString());
+            RESULT = lc;
+        :}
+  |
+    INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C
+        {: RESULT = lv; :} 
+    ;

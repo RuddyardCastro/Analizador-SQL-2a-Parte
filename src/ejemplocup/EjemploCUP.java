@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ejemplocup;
 
 import java.io.File;
@@ -12,78 +7,98 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @author arturo
- */
 public class EjemploCUP {
 
     public final static int GENERAR = 1;
     public final static int EJECUTAR = 2;
     public final static int SALIR = 3;
+    public final static int SEMANTICO = 4; 
 
-    /**
-     * Es un menu para elegir entre generar el analizador lexico y sintactico, o
-     * ejecutarlos sobre un archivo de pruebas.
-     *
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         java.util.Scanner in = new Scanner(System.in);
         int valor = 0;
+        
         do {
             System.out.println("Elija una opcion: ");
             System.out.println("1) Generar");
-            System.out.println("2) Ejecutar");
+            System.out.println("2) Ejecutar sintactico");
             System.out.println("3) Salir");
+            System.out.println("4) Ejecutar semantico"); // Agregamos la opción al menú visual
             System.out.print("Opcion: ");
             valor = in.nextInt();
+            
             switch (valor) {
-                /*  Generamos el analizador lexico y sintactico.
-                 lcalc.flex contiene la definicion del analizador lexico
-                 ycalc.cup contiene la definicion del analizador sintactico
-                 */
                 case GENERAR: {
                     System.out.println("\n*** Generando ***\n");
                     String archLexico = "";
                     String archSintactico = "";
+                    String archSemantico = ""; 
+                    
                     if (args.length > 0) {
                         System.out.println("\n*** Procesando archivos custom ***\n");
                         archLexico = args[0];
                         archSintactico = args[1];
+                        archSemantico = args[2];
+                        // Si pasan argumentos por consola, archSemantico se queda como "semantico.cup"
                     } else {
                         System.out.println("\n*** Procesando archivo default ***\n");
                         archLexico = "alexico.flex";
                         archSintactico = "asintactico.cup";
+                        archSemantico = "semantico.cup";
                     }
+                    
+                    // Configuramos los comandos para Java CUP
                     String[] alexico = {archLexico};
                     String[] asintactico = {"-parser", "AnalizadorSintactico", archSintactico};
+                    
+                     /*El analizador semantico */
+                    String[] asemantico = {"-parser", "AnalizadorSemantico", archSemantico};                    
                     jflex.Main.main(alexico);
                     try {
-                        java_cup.Main.main(asintactico);
+                        java_cup.Main.main(asintactico); 
+                        /*Genera el semántico*/
+                        java_cup.Main.main(asemantico);  
                     } catch (Exception ex) {
                         Logger.getLogger(EjemploCUP.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    //movemos los archivos generados
+                    
+                    // Movemos TODOS los archivos generados a la carpeta correcta
                     boolean mvAL = moverArch("AnalizadorLexico.java");
                     boolean mvAS = moverArch("AnalizadorSintactico.java");
-                    boolean mvSym= moverArch("sym.java");
-                    if(mvAL && mvAS && mvSym){
+                    boolean mvSym = moverArch("sym.java");
+                    /*Movemos el semántico*/
+                    boolean mvASEM = moverArch("AnalizadorSemantico.java"); 
+                    
+                    // Comprobamos que todos se movieron bien
+                    if(mvAL && mvAS && mvSym && mvASEM){
                         System.exit(0);
                     }
                     System.out.println("Generado!");
                     break;
                 }
                 case EJECUTAR: {
-                    /*  Ejecutamos el analizador lexico y sintactico
-                     sobre un archivo de pruebas. 
-                     */
                     String[] archivoPrueba = {"programa.txt"};
                     AnalizadorSintactico.main(archivoPrueba);
-                    System.out.println("Ejecutado!");
+                 //   System.out.println("Ejecutado Sintáctico!");
                     break;
                 }
                 case SALIR: {
                     System.out.println("Adios!");
+                    break;
+                }
+                case SEMANTICO: { // El nuevo bloque para ejecutar el semántico
+                    System.out.println("\n*** Ejecutando Analisis semantico ***\n");
+                    String[] archivoPrueba = {"programa.txt"};
+                    
+                    try {
+                        // Aquí llamamos a la clase que generó CUP para tu semántico
+                        AnalizadorSemantico.main(archivoPrueba); 
+                    } catch (Exception ex) {
+                        System.out.println("Error al ejecutar el semántico");
+                        break;
+                    }
+                    
+                    System.out.println("\nAnálisis Semántico Terminado!");
                     break;
                 }
                 default: {
@@ -92,7 +107,6 @@ public class EjemploCUP {
                 }
             }
         } while (valor != 3);
-
     }
 
     public static boolean moverArch(String archNombre) {
@@ -112,7 +126,6 @@ public class EjemploCUP {
             } else {
                 System.out.println("\n*** No movido " + archNombre + " ***\n");
             }
-
         } else {
             System.out.println("\n*** Codigo no existente ***\n");
         }

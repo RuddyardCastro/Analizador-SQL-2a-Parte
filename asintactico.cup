@@ -130,7 +130,7 @@ instruccion ::=
                 INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C
                 {: RESULT = lv; :} ;
 
-/* --- Nuevas reglas para el manejo de listas de valores --- */
+
 lista_valores ::= lista_valores:lv COMA elemento_valor:ev
                 {: RESULT = ev; :}
                 |
