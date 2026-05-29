@@ -1,7 +1,1 @@
-CREATE DATABASE Almacen2;
-USE Almacen2;
-CREATE TABLE nombre_cliente(id int, nombre varchar(50));
-CREATE TABLE productos (idProducto int, nombreProducto varchar(50), precio float(18,2));
-INSERT INTO nombre_cliente (id, nombre) values (1,'Daniel');
-INSERT INTO productos (idProducto, nombreProducto, precio) values (1,'Arroz',3);
-SELECT * FROM productos;
+USE mi_base_datos;
