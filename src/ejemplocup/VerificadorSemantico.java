@@ -42,7 +42,5 @@ public class VerificadorSemantico {
         System.out.println("Semántico OK Tabla '" + nombreTabla + "' creada con éxito dentro de '" + baseDatosEnUso + "'.");
     }
 
-    static void main(String[] archivoPrueba) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+    
 }

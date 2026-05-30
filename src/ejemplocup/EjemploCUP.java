@@ -89,15 +89,16 @@ public class EjemploCUP {
                 case SEMANTICO: { // El nuevo bloque para ejecutar el semántico
                     System.out.println("\n*** Ejecutando Analisis semantico ***\n");
                     String[] archivoPrueba = {"programa.txt"};
-                    
+
                     try {
-                        // Aquí llamamos a la clase que generó CUP para tu semántico
-                        VerificadorSemantico.main(archivoPrueba); 
+                        // CORRECCIÓN: Llamamos a la clase generada por CUP (AnalizadorSemantico)
+                        AnalizadorSemantico.main(archivoPrueba);
                     } catch (Exception ex) {
                         System.out.println("Error al ejecutar el semántico");
+                        ex.printStackTrace(); // Opcional: Esto te ayudará a ver errores reales en el futuro
                         break;
                     }
-                    
+
                     System.out.println("\nAnálisis Semántico Terminado!");
                     break;
                 }
