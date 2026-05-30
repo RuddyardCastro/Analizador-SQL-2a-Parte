@@ -92,7 +92,7 @@ public class EjemploCUP {
                     
                     try {
                         // Aquí llamamos a la clase que generó CUP para tu semántico
-                        AnalizadorSemantico.main(archivoPrueba); 
+                        VerificadorSemantico.main(archivoPrueba); 
                     } catch (Exception ex) {
                         System.out.println("Error al ejecutar el semántico");
                         break;
