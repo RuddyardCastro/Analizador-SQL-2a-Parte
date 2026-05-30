@@ -4,7 +4,7 @@
  */
 package ejemplocup;
 
-public class AnalizadorSemantico {
+public class VerificadorSemantico { 
     // Estas variables guardan el estado de lo que va descubriendo el analizador
     private static String baseDatosCreada = null;
     private static String baseDatosEnUso = null;
