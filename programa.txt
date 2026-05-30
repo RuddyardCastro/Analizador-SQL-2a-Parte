@@ -1,1 +1,2 @@
-USE mi_base_datos;
+CREATE DATABASE Almacen2;
+USE Almacen2;

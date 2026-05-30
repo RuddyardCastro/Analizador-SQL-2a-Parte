@@ -1,13 +1,10 @@
 /* ---------------Seccion de declaraciones preliminares--------------------*/
 package ejemplocup;
 
-/* Import the class java_cup.runtime.* */
 import java_cup.runtime.*;
 import java.io.FileReader;
 
-/* Codigo del parser, se copia integramente a la clase final.*/
 parser code {:
-    
     public void report_error(String message, Object info) {
         StringBuilder m = new StringBuilder("Error");
         if (info instanceof java_cup.runtime.Symbol) {
@@ -29,7 +26,6 @@ parser code {:
 
     public static void main(String[] args){
         try {
-            // Cambiado a AnalizadorSemantico
             AnalizadorSemantico asin = new AnalizadorSemantico(
                     new AnalizadorLexico( new FileReader(args[0])));
             Object result = asin.parse().value;
@@ -39,139 +35,106 @@ parser code {:
         }
     }
 :};
-    
 
 /* ------------Declaracion de simbolos terminales y no terminales---------- */
-   
-/* Terminales sin valor asociado */
 terminal           SELECT, FROM, WHERE, UPDATE, SET;
 terminal           ASTERISCO, IGUAL, COMA, PUNTOYCOMA, PAR_A, PAR_C;
 terminal           INNER, JOIN, ON, PUNTO;
-/*Agregados en el proyecto final*/
 terminal           INSERT, INTO, VALUES, FLOAT;
-/* NUEVOS TERMINALES (DDL y Ordenación) */
 terminal           CREATE, DATABASE, TABLE, USE;
 terminal           ORDER, BY, ASC, DESC;
 terminal           MAYOR, MENOR;
-/* NUEVOS TERMINALES (Tipos de datos para CREATE TABLE) */
 terminal           INT, VARCHAR, PRIMARY, KEY;
-/* Terminales con valor */
+
 terminal Integer   ENTERO;
 terminal Float     NUREAL;
 terminal String    ID, LITERAL_STR;
 
-
-/* No terminales */
 non terminal Object   inicio, sentencia, instruccion, clausula_where, valor, lista_campos, nombre_tabla;
 non terminal Object   nombre_compuesto, clausula_join;
-
-/* NUEVOS NO TERMINALES */
 non terminal Object   clausula_order, lista_order, elemento_order, comparador;
 non terminal Object   definicion_tabla, lista_columnas, columna, tipo_dato, campos_select;
-
-/*Agregados par proy final*/
 non terminal Object   lista_valores, elemento_valor;
 
-/* --- Estructura Inicial (Recursiva a la izquierda) --- */
 inicio ::= inicio sentencia 
-         |
-         sentencia ;
+         | sentencia ;
 
 sentencia ::= instruccion PUNTOYCOMA 
-            {: 
-         
-            :} ;
+            {: :} ;
 
-/* --- AQUÍ ESTÁN LAS REGLAS SEMÁNTICAS INYECTADAS --- */
 instruccion ::= 
-                SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_order:co
-                {: RESULT = cs; :}
-              |
-                UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
-                {: RESULT = v; :}
-              |
-                CREATE DATABASE ID:id
-                {: 
-                    VerificadorSemantico.registrarCreateDatabase(id.toString()); // <-- AQUÍ
-                    RESULT = id;
-                :}
-              |
-                USE ID:id
-                {: 
-                    VerificadorSemantico.registrarUseDatabase(id.toString()); // <-- AQUÍ
-                    RESULT = id;
-                :}
-              |
-                CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
-                {: 
-                    VerificadorSemantico.verificarCreateTable(nt.toString()); // <-- AQUÍ
-                    RESULT = lc;
-                :}
+        SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_order:co
+        {: RESULT = cs; :}
+      | UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
+        {: RESULT = v; :}
+      | CREATE DATABASE ID:id
+        {: 
+            VerificadorSemantico.registrarCreateDatabase(id.toString());
+            RESULT = id;
+        :}
+      | USE ID:id
+        {: 
+            VerificadorSemantico.registrarUseDatabase(id.toString());
+            RESULT = id;
+        :}
+      | CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
+        {: 
+            VerificadorSemantico.verificarCreateTable(nt.toString());
+            RESULT = lc;
+        :}
+      | INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C
+        {: RESULT = lv; :} ;
 
-/* --- Nuevas reglas para el manejo de listas de valores --- */
 lista_valores ::= lista_valores:lv COMA elemento_valor:ev
                 {: RESULT = ev; :}
-                |
-                elemento_valor:ev
+                | elemento_valor:ev
                 {: RESULT = ev; :} ;
 
 elemento_valor ::= valor:v
                  {: RESULT = v; :} ;
 
-/* --- MANEJO DE LISTAS --- */
 campos_select ::= ASTERISCO 
                 {: RESULT = "*"; :}
-                |
-                lista_campos:lc 
+                | lista_campos:lc 
                 {: RESULT = lc; :} ;
 
 lista_campos ::= lista_campos:lc COMA nombre_compuesto:nc
                 {: RESULT = nc; :}
-               |
-                nombre_compuesto:nc 
+               | nombre_compuesto:nc 
                 {: RESULT = nc; :} ;
 
 lista_columnas ::= lista_columnas:lc COMA columna:c 
                 {: RESULT = c; :}
-                 |
-                columna:c 
+                 | columna:c 
                 {: RESULT = c; :} ;
 
 lista_order ::= lista_order:lo COMA elemento_order:eo
                 {: RESULT = eo; :}
-              |
-                elemento_order:eo 
+              | elemento_order:eo 
                 {: RESULT = eo; :} ;
 
-/* --- Reglas Complementarias --- */
 columna ::= ID:id tipo_dato:td
           {: RESULT = id; :}
-          |
-          ID:id tipo_dato:td PRIMARY KEY 
+          | ID:id tipo_dato:td PRIMARY KEY 
           {: RESULT = id; :} ;
 
 tipo_dato ::= INT
             {: RESULT = "INT"; :}
-            |
-            VARCHAR PAR_A ENTERO:e PAR_C 
+            | VARCHAR PAR_A ENTERO:e PAR_C 
             {: RESULT = e; :}
-            |
-            FLOAT
+            | FLOAT
             {: RESULT = "FLOAT"; :}
-            |
-            FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C
+            | FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C
             {: RESULT = "FLOAT_DECIMAL"; :} ;
 
 clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2
                 {: RESULT = nt; :}
-                |
-                /* vacio */ 
+                | /* vacio */ 
                 {: RESULT = null; :} ;
 
 clausula_where ::= WHERE nombre_compuesto:nc comparador:cp valor:v
                 {: RESULT = v; :}
-                |
-                /* vacio */ 
+                | /* vacio */ 
                 {: RESULT = null; :} ;
 
 comparador ::= IGUAL  {: RESULT = "="; :} 
@@ -180,17 +143,14 @@ comparador ::= IGUAL  {: RESULT = "="; :}
 
 clausula_order ::= ORDER BY lista_order:lo
                  {: RESULT = lo; :}
-                 |
-                 /* vacio */ 
+                 | /* vacio */ 
                  {: RESULT = null; :} ;
 
 elemento_order ::= nombre_compuesto:nc
                  {: RESULT = nc; :}
-                 |
-                 nombre_compuesto:nc ASC
+                 | nombre_compuesto:nc ASC
                  {: RESULT = nc; :}
-                 |
-                 nombre_compuesto:nc DESC 
+                 | nombre_compuesto:nc DESC 
                  {: RESULT = nc; :} ;
 
 valor ::= ENTERO:e      {: RESULT=e; :} 
@@ -202,6 +162,5 @@ nombre_tabla ::= ID:d   {: RESULT = d; :} ;
 
 nombre_compuesto ::= ID:id 
                    {: RESULT = id; :}
-                   |
-                   ID:id1 PUNTO ID:id2 
+                   | ID:id1 PUNTO ID:id2 
                    {: RESULT = id2; :} ;
