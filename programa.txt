@@ -1,2 +1,6 @@
+USE Almacen2;
 CREATE DATABASE Almacen2;
 USE Almacen2;
+CREATE TABLE nombre_cliente(id int, nombre varchar(50));
+CREATE TABLE productos (idProducto int, nombreProducto varchar(50), precio float(18,2));
+INSERT INTO nombre_cliente (id, nombre) values (a,'Daniel');
