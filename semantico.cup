@@ -56,6 +56,15 @@ non terminal Object   clausula_order, lista_order, elemento_order, comparador;
 non terminal Object   definicion_tabla, lista_columnas, columna, tipo_dato, campos_select;
 non terminal Object   lista_valores, elemento_valor;
 
+
+inicio ::= inicio sentencia 
+         | sentencia ;
+
+sentencia ::= instruccion PUNTOYCOMA 
+            {: 
+         
+            :} ;
+
 instruccion ::= 
         SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_order:co
         {: 
