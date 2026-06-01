@@ -92,14 +92,17 @@ public class EjemploCUP {
 
                     try {
                         // CORRECCIÓN: Llamamos a la clase generada por CUP (AnalizadorSemantico)
+                        /*Aqui me confudi y puse el  verificador semantico*/
                         AnalizadorSemantico.main(archivoPrueba);
                     } catch (Exception ex) {
                         System.out.println("Error al ejecutar el semántico");
-                        ex.printStackTrace(); // Opcional: Esto te ayudará a ver errores reales en el futuro
+                        /*esta funcio me la recomendo la ia para ver errores de mejor forma */
+                        /*cuando incorpore otras reglas me ayudo a identificar error en semntico.cup por lago que borre*/
+                        ex.printStackTrace(); 
                         break;
                     }
 
-                    System.out.println("\nAnálisis Semántico Terminado!");
+                    System.out.println("\nAnalisis Semantico Terminado!");
                     break;
                 }
                 default: {
