@@ -28,7 +28,7 @@ public class VerificadorSemantico {
             System.err.println("ERROR Semantico: M1 - No se puede eliminar una base de datos que no existe: " + id);
         } else {
             basesDeDatos.remove(id);
-            if (id.equals(baseDatosEnUso)) baseDatosEnUso = null; // M1: Ya no se puede usar despues
+            if (id.equals(baseDatosEnUso)) baseDatosEnUso = null;
             System.out.println("Semantico OK: Base de datos eliminada: " + id);
         }
     }
@@ -54,7 +54,6 @@ public class VerificadorSemantico {
     /* MÓDULO 3: TABLAS */
     public static boolean verificarCreateTable(String nombreTabla) {
         if (!verificarBaseDatosEnUso()) return false;
-        
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
         if (tablasCampos.containsKey(claveTabla)) {
             System.err.println("ERROR Semantico: M3 - No se puede crear dos veces la misma tabla: " + nombreTabla);
@@ -67,7 +66,6 @@ public class VerificadorSemantico {
 
     public static boolean verificarTablaExiste(String nombreTabla, String contexto) {
         if (!verificarBaseDatosEnUso()) return false;
-        
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
         if (!tablasCampos.containsKey(claveTabla)) {
             System.err.println("ERROR Semantico: M3 - No se puede " + contexto + " porque la tabla '" + nombreTabla + "' no existe.");
@@ -98,6 +96,14 @@ public class VerificadorSemantico {
         columnas.add(columna);
         tiposCampos.put(claveTabla + "." + columna, tipo);
     }
+    
+    public static void verificarLlaveForanea(String tablaActual, String campoFk, String tablaRef, String campoRef) {
+        if (!verificarTablaExiste(tablaRef, "crear llave foranea")) return;
+        String claveRef = baseDatosEnUso + "." + tablaRef;
+        if (!tablasCampos.get(claveRef).contains(campoRef)) {
+            System.err.println("ERROR Semantico: Modulo 4 - La tabla '" + tablaRef + "' referenciada por FOREIGN KEY no contiene el campo '" + campoRef + "'.");
+        }
+    }
 
      public static void verificarInsert(String nombreTabla, List<String> campos, List<Object> valores) {
         if (!verificarTablaExiste(nombreTabla, "insertar")) return;
@@ -117,7 +123,6 @@ public class VerificadorSemantico {
             if (!columnasTabla.contains(campo)) {
                 System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' no existe en la tabla.");
             } else {
-                // Comprobamos que el tipo de dato haga match
                 verificarTipoDato(nombreTabla, campo, valor);
             }
             if (camposVistos.contains(campo)) {
@@ -126,18 +131,14 @@ public class VerificadorSemantico {
             camposVistos.add(campo);
         }
     }
-    
+
     public static void verificarUpdate(String nombreTabla, String campoSet) {
         if (!verificarTablaExiste(nombreTabla, "actualizar")) return;
-        
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
         if (!tablasCampos.get(claveTabla).contains(campoSet)) {
             System.err.println("ERROR Semantico: M4 - No se puede actualizar un campo que no existe: " + campoSet);
         }
     }
-    
-    
-    
     
     public static boolean verificarTipoDato(String nombreTabla, String campo, Object valor) {
         String claveCampo = baseDatosEnUso + "." + nombreTabla + "." + campo;
@@ -147,19 +148,17 @@ public class VerificadorSemantico {
         String tipoValor = "";
         int longitudString = 0;
 
-        // Detectamos qué tipo de Java nos entregó JFlex
         if (valor instanceof Integer) {
             tipoValor = "INT";
         } else if (valor instanceof Float) {
             tipoValor = "FLOAT";
         } else if (valor instanceof String) {
             String strVal = (String) valor;
-            // Si tiene comillas simples, es un texto LITERAL_STR
             if (strVal.startsWith("'") && strVal.endsWith("'")) {
                 tipoValor = "VARCHAR";
-                longitudString = strVal.length() - 2; // Restamos las 2 comillas
+                longitudString = strVal.length() - 2; 
             } else {
-                tipoValor = "ID"; // Si no tiene comillas, es una variable o identificador
+                tipoValor = "ID";
             }
         }
 
@@ -168,9 +167,9 @@ public class VerificadorSemantico {
             System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un INT pero recibió " + tipoValor);
             return false;
         }
-        // 2. Validar FLOAT (Permitimos que un INT se guarde en un FLOAT, pero no al reves)
-        if (tipoEsperado.startsWith("FLOAT") && (!tipoValor.equals("FLOAT") && !tipoValor.equals("INT"))) {
-            System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un FLOAT pero recibió " + tipoValor);
+        // 2. Validar FLOAT y DECIMAL
+        if ((tipoEsperado.startsWith("FLOAT") || tipoEsperado.startsWith("DECIMAL")) && (!tipoValor.equals("FLOAT") && !tipoValor.equals("INT"))) {
+            System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un valor numérico real pero recibió " + tipoValor);
             return false;
         }
         // 3. Validar VARCHAR y su longitud
@@ -180,7 +179,6 @@ public class VerificadorSemantico {
                 return false;
             }
             
-            // Extraemos el número máximo (ej: de "VARCHAR:50" sacamos el 50)
             String[] partes = tipoEsperado.split(":");
             if (partes.length == 2) {
                 int maxLen = Integer.parseInt(partes[1]);
@@ -193,8 +191,6 @@ public class VerificadorSemantico {
         return true;
     }
 
-   
-    
     public static void verificarUpdate(String nombreTabla, String campoSet, Object valor) {
         if (!verificarTablaExiste(nombreTabla, "actualizar")) return;
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
@@ -214,5 +210,4 @@ public class VerificadorSemantico {
             verificarTipoDato(nombreTabla, campoWhere, valor);
         }
     }
-    
 }

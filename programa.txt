@@ -1,5 +1,4 @@
-CREATE DATABASE Almacen2;
-USE Almacen2;
-CREATE TABLE nombre_cliente(id int, nombre varchar(50));
-CREATE TABLE productos (idProducto int, nombreProducto varchar(50), precio float(18,2));
-INSERT INTO nombre_cliente (id, nombre) values (1,'Daniel');
+
+UPDATE nombre_tabla SET columna1 = valor1, columna2 = valor2 WHERE condicion;
+UPDATE Productos SET precio = 25.50 WHERE id_producto = 104;
+UPDATE Empleados SET cargo = 'Gerente Senior', salario = 5000.00 WHERE id_empleado = 25;

@@ -63,141 +63,80 @@ NumReal = {Entero} "." [0-9]*
 
     /* 2. PALABRAS RESERVADAS SQL (DML) */
     
-    "SELECT" | "select"    { System.out.print("SELECT ");
-                          return symbol(sym.SELECT); }
+    "SELECT" | "select"    { System.out.print("SELECT "); 
+                            return symbol(sym.SELECT); }
+    "FROM" | "from"        { System.out.print("FROM "); 
+                            return symbol(sym.FROM); }
+    "WHERE" | "where"      { System.out.print("WHERE "); 
+                            return symbol(sym.WHERE); }
+    "UPDATE" | "update"    { System.out.print("UPDATE "); 
+                                return symbol(sym.UPDATE); }
+    "SET" | "set"          { System.out.print("SET "); 
+                            return symbol(sym.SET); }
+    "INNER" | "inner"      { System.out.print("INNER "); 
+                            return symbol(sym.INNER); }
+    "JOIN"  | "join"       { System.out.print("JOIN "); 
+                            return symbol(sym.JOIN); }
+    "ON"    | "on"         { System.out.print("ON "); return symbol(sym.ON); }
 
-    "FROM" | "from"        { System.out.print("FROM ");
-                              return symbol(sym.FROM); }
-
-    "WHERE" | "where"      { System.out.print("WHERE ");
-                           return symbol(sym.WHERE); }
-
-    "UPDATE" | "update"    { System.out.print("UPDATE ");
-                              return symbol(sym.UPDATE); }
-
-    "SET" | "set"          { System.out.print("SET ");
-                             return symbol(sym.SET); }
-
-    "INNER" | "inner"      { System.out.print("INNER ");
-                              return symbol(sym.INNER); }
-
-    "JOIN"  | "join"       { System.out.print("JOIN ");
-                              return symbol(sym.JOIN); }
-
-    "ON"    | "on"         { System.out.print("ON ");
-                            return symbol(sym.ON); }
-
-
-/* palabras para el proy final */
-    "INSERT" | "insert"    { System.out.print("INSERT ");
-                               return symbol(sym.INSERT); }
-    "INTO"   | "into"      { System.out.print("INTO ");
-                          return symbol(sym.INTO); }
-    "VALUES" | "values"    { System.out.print("VALUES ");
-                        return symbol(sym.VALUES); }
+    /* palabras para el proy final */
+    "INSERT" | "insert"    { System.out.print("INSERT "); return symbol(sym.INSERT); }
+    "INTO"   | "into"      { System.out.print("INTO "); return symbol(sym.INTO); }
+    "VALUES" | "values"    { System.out.print("VALUES "); return symbol(sym.VALUES); }
 
     /* Nuevo tipo de dato FLOAT */
-    "FLOAT"  | "float"     { System.out.print("TIPO_FLOAT "); 
-                             return symbol(sym.FLOAT); }
+    "FLOAT"  | "float"     { System.out.print("TIPO_FLOAT "); return symbol(sym.FLOAT); }
 
     /* DML - Ordenación */
-    "ORDER" | "order"      { System.out.print("ORDER ");
-                             return symbol(sym.ORDER); }
+    "ORDER" | "order"      { System.out.print("ORDER "); return symbol(sym.ORDER); }
+    "BY" | "by"            { System.out.print("BY "); return symbol(sym.BY); }
+    "ASC" | "asc"          { System.out.print("ASC "); return symbol(sym.ASC); }
+    "DESC" | "desc"        { System.out.print("DESC "); return symbol(sym.DESC); }
 
-    "BY" | "by"            { System.out.print("BY ");
-                              return symbol(sym.BY); }
-
-    "ASC" | "asc"          { System.out.print("ASC ");
-                             return symbol(sym.ASC); }
-
-    "DESC" | "desc"        { System.out.print("DESC ");
-                            return symbol(sym.DESC); }
-
-
-   /* DDL - Definición de Datos */
-    "CREATE" | "create"    { System.out.print("CREATE ");
-                              return symbol(sym.CREATE); }
-
-    "DATABASE" | "database" { System.out.print("DATABASE ");
-                             return symbol(sym.DATABASE); }
-
-    "TABLE" | "table"      { System.out.print("TABLE ");
-                           return symbol(sym.TABLE); }
-
-    "USE" | "use"          { System.out.print("USE ");
-                            return symbol(sym.USE); }
- 
-
-
+    /* DDL - Definición de Datos */
+    "CREATE" | "create"    { System.out.print("CREATE "); return symbol(sym.CREATE); }
+    "DATABASE" | "database" { System.out.print("DATABASE "); return symbol(sym.DATABASE); }
+    "TABLE" | "table"      { System.out.print("TABLE "); return symbol(sym.TABLE); }
+    "USE" | "use"          { System.out.print("USE "); return symbol(sym.USE); }
         
-      /* Palabras reservadas para tipos de datos y restricciones */
+    /* Palabras reservadas para tipos de datos y restricciones */
+    "INT" | "int"          { System.out.print("TIPO_INT "); return symbol(sym.INT); } 
+    "VARCHAR" | "varchar"  { System.out.print("TIPO_VARCHAR "); return symbol(sym.VARCHAR); }
+    "PRIMARY" | "primary"  { System.out.print("PRIMARY "); return symbol(sym.PRIMARY); }
+    "KEY" | "key"          { System.out.print("KEY "); return symbol(sym.KEY); }
 
-    "INT" | "int" { System.out.print("TIPO_INT "); 
-        return symbol(sym.INT);  } 
-
-    "VARCHAR" | "varchar" {  System.out.print("TIPO_VARCHAR "); 
-    return symbol(sym.VARCHAR); }
-
-    "PRIMARY" | "primary" {  System.out.print("PRIMARY "); 
-        return symbol(sym.PRIMARY); }
-
-    "KEY" | "key" { System.out.print("KEY "); 
-     return symbol(sym.KEY); }
-
-
-
-
+    /* AGREGADOS PARA CUBRIR PARTE OBLIGATORIA DEL PROYECTO FINAL */
+    "AUTO_INCREMENT" | "auto_increment" { System.out.print("AUTO_INCREMENT "); return symbol(sym.AUTO_INCREMENT); }
+    "NOT" | "not"          { System.out.print("NOT "); return symbol(sym.NOT); }
+    "NULL" | "null"        { System.out.print("NULL "); return symbol(sym.NULL); }
+    "DECIMAL" | "decimal"  { System.out.print("DECIMAL "); return symbol(sym.DECIMAL); }
+    "FOREIGN" | "foreign"  { System.out.print("FOREIGN "); return symbol(sym.FOREIGN); }
+    "REFERENCES" | "references" { System.out.print("REFERENCES "); return symbol(sym.REFERENCES); }
+    "AS" | "as"            { System.out.print("AS "); return symbol(sym.AS); }
+    "GROUP" | "group"      { System.out.print("GROUP "); return symbol(sym.GROUP); }
+    "COUNT" | "count"      { System.out.print("COUNT "); return symbol(sym.COUNT); }
 
     /* 3. OPERADORES Y SÍMBOLOS SQL */
-
-    "*"                    { System.out.print("* ");
-                             return symbol(sym.ASTERISCO); }
-
-    "="                    { System.out.print("= ");
-                            return symbol(sym.IGUAL); }
-
-    ","                    { System.out.print(", ");
-                             return symbol(sym.COMA); }
-
-    ";"                    { System.out.print(";\n");
-                            return symbol(sym.PUNTOYCOMA); }
-
-    "("                    { System.out.print("( ");
-                             return symbol(sym.PAR_A); }
-
-    ")"                    { System.out.print(") ");
-                            return symbol(sym.PAR_C); }
-
-    "."                    { System.out.print(". ");
-                             return symbol(sym.PUNTO); }
-
+    "*"                    { System.out.print("* "); return symbol(sym.ASTERISCO); }
+    "="                    { System.out.print("= "); return symbol(sym.IGUAL); }
+    ","                    { System.out.print(", "); return symbol(sym.COMA); }
+    ";"                    { System.out.print(";\n"); return symbol(sym.PUNTOYCOMA); }
+    "("                    { System.out.print("( "); return symbol(sym.PAR_A); }
+    ")"                    { System.out.print(") "); return symbol(sym.PAR_C); }
+    "."                    { System.out.print(". "); return symbol(sym.PUNTO); }
 
     /* Operadores de comparación  */
-    ">"                    { System.out.print("> ");
-                            return symbol(sym.MAYOR); }
-
-    "<"                    { System.out.print("< ");
-                             return symbol(sym.MENOR); }
-
+    ">"                    { System.out.print("> "); return symbol(sym.MAYOR); }
+    "<"                    { System.out.print("< "); return symbol(sym.MENOR); }
 
     /* Cadenas de texto con comilla simple */
-
-    /*[^']:esto significa la negacion de ´*/
-
-    "'" [^]* "'"          { System.out.print("LITERAL_STR ");
+       "'" [^]* "'"          { System.out.print("LITERAL_STR ");
                             return symbol(sym.LITERAL_STR, yytext()); }
 
-
     /* Identificadores y Números */
-    
-    {Identificador}        { System.out.print("ID ");
-                             return symbol(sym.ID, yytext()); }
-
-    {Entero}               { System.out.print("ENTERO ");
-                            return symbol(sym.ENTERO, Integer.valueOf(yytext())); }
-
-    {NumReal}              { System.out.print("NUREAL ");
-                             return symbol(sym.NUREAL, Float.valueOf(yytext())); }
+    {Identificador}        { System.out.print("ID "); return symbol(sym.ID, yytext()); }
+    {Entero}               { System.out.print("ENTERO "); return symbol(sym.ENTERO, Integer.valueOf(yytext())); }
+    {NumReal}              { System.out.print("NUREAL "); return symbol(sym.NUREAL, Float.valueOf(yytext())); }
 }
 
 /* Error de token ilegal */
