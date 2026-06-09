@@ -183,7 +183,7 @@ condicion_logica ::= condicion_logica AND termino_condicion
 
 termino_condicion ::= nombre_compuesto comparador valor
                     | PAR_A condicion_logica PAR_C
-                    | ID  ;   
+                    | nombre_compuesto ;    
     
 clausula_group ::= GROUP BY lista_campos:lc 
                     {: RESULT = lc; :}

@@ -111,7 +111,7 @@ public class VerificadorSemantico {
         List<String> columnasTabla = tablasCampos.get(claveTabla);
         
         if (campos.size() != valores.size()) {
-            System.err.println("ERROR Semantico: Modulo 4 - El número de valores no coincide con el número de campos especificados.");
+            System.err.println("ERROR Semantico: Modulo 4 - El numero de valores no coincide con el numero de campos especificados.");
             return;
         }
 

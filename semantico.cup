@@ -183,9 +183,9 @@ lista_columnas ::= lista_columnas:lc COMA elemento_columna:ec
                 :} ;
 
 /* --- Nuevas reglas para múltiples asignaciones en UPDATE --- */
-lista_asignaciones ::= lista_asignaciones COMA asignacion:a
+lista_asignaciones ::= lista_asignaciones:la COMA asignacion:a
                      {: 
-                         java.util.List<Object[]> lista = (java.util.List<Object[]>) RESULT;
+                         java.util.List<Object[]> lista = (java.util.List<Object[]>) la; // <- Correcto
                          lista.add((Object[]) a);
                          RESULT = lista;
                      :}
@@ -234,7 +234,7 @@ condicion_logica ::= condicion_logica AND termino_condicion
 
 termino_condicion ::= nombre_compuesto comparador valor
                     | PAR_A condicion_logica PAR_C
-                    | ID ;   // Permite "WHERE condicion" (simple identificador)
+                    | nombre_compuesto ; 
 
 clausula_group ::= GROUP BY lista_campos:lc {: RESULT = lc; :}
                  | /* vacio */ {: RESULT = null; :} ;

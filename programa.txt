@@ -1,3 +1,16 @@
+CREATE DATABASE mi_base_de_datos;
+USE mi_base_de_datos;
+CREATE TABLE Categorias ( id_categoria INT PRIMARY KEY AUTO_INCREMENT, nombre_categoria VARCHAR(100) NOT NULL );
+CREATE TABLE Productos ( id_producto INT PRIMARY KEY AUTO_INCREMENT, nombre_producto VARCHAR(150) NOT NULL, precio DECIMAL(10, 2), id_categoria INT, FOREIGN KEY (id_categoria) REFERENCES Categorias(id_categoria) );
+
+INSERT INTO Categorias (nombre_categoria) VALUES ('Electrónica');
+INSERT INTO Productos (nombre_producto, precio, id_categoria) VALUES ('Laptop', 1200.00, 1);
+
+SELECT columna1, columna2 FROM nombre_tabla;
+SELECT Nombre AS NombreCompleto, Salario * 0.12 AS Impuesto FROM Empleados;
+SELECT Empleados.Nombre, Departamentos.NombreDep FROM Empleados INNER JOIN Departamentos ON Empleados.IdDepto = Departamentos.Id;
+SELECT Ciudad, COUNT(*) AS TotalClientes FROM Clientes GROUP BY Ciudad;
+
 UPDATE nombre_tabla SET columna1 = valor1, columna2 = valor2 WHERE condicion;
 UPDATE Productos SET precio = 25.50 WHERE id_producto = 104;
-UPDATE Empleados SET cargo = 'Gerente Senior', salario = 5000.00 WHERE id_empleado = 25;
+    

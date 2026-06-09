@@ -48,7 +48,7 @@ Salto = \r|\n|\r\n
    
 /* Espacio es un espacio en blanco, tabulador \t, salto de linea o avance de pagina \f */
 Espacio = {Salto} | [ \t\f]
-   
+Simbolo = "#" | "--"
 /* EXPRESIONES REGULARES */
 Entero = 0 | [1-9][0-9]*
 Identificador = [a-zA-Z][A-Za-z0-9_]*
@@ -60,7 +60,7 @@ NumReal = {Entero} "." [0-9]*
     
     /* 1. ESPACIOS */
     {Espacio}           { /* ignora el espacio */ }
-
+    {Simbolo}           { /* ignora el espacio */ }
     /* 2. PALABRAS RESERVADAS SQL (DML) */
     
     "SELECT" | "select"    { System.out.print("SELECT "); 
