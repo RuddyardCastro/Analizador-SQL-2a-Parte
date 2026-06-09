@@ -45,37 +45,42 @@ terminal           CREATE, DATABASE, TABLE, USE;
 terminal           ORDER, BY, ASC, DESC;
 terminal           MAYOR, MENOR;
 terminal           INT, VARCHAR, PRIMARY, KEY;
-
+terminal           AUTO_INCREMENT, NOT, NULL, DECIMAL, FOREIGN, REFERENCES, AS, GROUP, COUNT;
+terminal           AND, OR;   // <-- importante para condiciones compuestas
 terminal Integer   ENTERO;
 terminal Float     NUREAL;
 terminal String    ID, LITERAL_STR;
 
+/* No terminales (incluyendo los nuevos) */
 non terminal Object   inicio, sentencia, instruccion, clausula_where, valor, lista_campos, nombre_tabla;
 non terminal Object   nombre_compuesto, clausula_join;
 non terminal Object   clausula_order, lista_order, elemento_order, comparador;
 non terminal Object   definicion_tabla, lista_columnas, columna, tipo_dato, campos_select;
 non terminal Object   lista_valores, elemento_valor;
+non terminal Object   clausula_group, lista_campos_select, elemento_select, elemento_columna, llave_foranea;
+non terminal Object   lista_asignaciones, asignacion, condicion_logica, termino_condicion;
 
+/* ------------ REGLAS DE PRODUCCIÓN (gramática extendida) ---------- */
 
 inicio ::= inicio sentencia 
          | sentencia ;
 
-sentencia ::= instruccion PUNTOYCOMA 
-            {: 
-         
-            :} ;
+sentencia ::= instruccion PUNTOYCOMA {: :} ;
 
 instruccion ::= 
-        SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_order:co
+        SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:c clausula_group:cg clausula_order:co
         {: 
             VerificadorSemantico.verificarTablaExiste(nt.toString(), "consultar");
             RESULT = cs;
         :}
-      | UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
-        {: 
-            VerificadorSemantico.verificarUpdate(nt.toString(), nc.toString());
-            RESULT = v;
-        :}
+        | UPDATE nombre_tabla:nt SET lista_asignaciones:la clausula_where:c
+    {: 
+        java.util.List<Object[]> asigns = (java.util.List<Object[]>) la;
+        for (Object[] asig : asigns) {
+            VerificadorSemantico.verificarUpdate(nt.toString(), asig[0].toString(), asig[1]);
+        }
+        RESULT = la;
+    :}
       | CREATE DATABASE ID:id
         {: 
             VerificadorSemantico.registrarCreateDatabase(id.toString());
@@ -86,23 +91,39 @@ instruccion ::=
             VerificadorSemantico.registrarUseDatabase(id.toString());
             RESULT = id;
         :}
-      | CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
+     | CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
         {: 
             if (VerificadorSemantico.verificarCreateTable(nt.toString())) {
                 java.util.List<String> columnas = (java.util.List<String>) lc;
                 for(String col : columnas){
-                    String[] datos = col.split(":");
-                    boolean pk = datos[2].equals("true");
-                    VerificadorSemantico.registrarColumna(nt.toString(), datos[0], datos[1], pk);
+                    if(col.startsWith("FK:")) {
+                        String[] partes = col.split(":");
+                        VerificadorSemantico.verificarLlaveForanea(nt.toString(), partes[1], partes[2], partes[3]);
+                    } else {
+                        String[] datos = col.split(":"); // Ahora siempre tendrá 3 partes exactas
+                        boolean pk = datos[2].equals("true");
+                        String tipoReal = datos[1].replace("-", ":"); // Restauramos a VARCHAR:150
+                        VerificadorSemantico.registrarColumna(nt.toString(), datos[0], tipoReal, pk);
+                    }
                 }
             }
             RESULT = lc;
         :}
-      | INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C
+
+
+
+     | INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C
         {: 
             VerificadorSemantico.verificarInsert(nt.toString(), (java.util.List<String>)lc, (java.util.List<Object>)lv);
             RESULT = lv;
+        :}
+      | INSERT INTO nombre_tabla:nt VALUES PAR_A lista_valores:lv PAR_C
+        {: 
+            VerificadorSemantico.verificarInsert(nt.toString(), null, (java.util.List<Object>)lv);
+            RESULT = lv;
         :} ;
+
+
 
 lista_valores ::= lista_valores:lv COMA elemento_valor:ev
                 {: 
@@ -110,8 +131,7 @@ lista_valores ::= lista_valores:lv COMA elemento_valor:ev
                     lista.add(ev);
                     RESULT = lista;
                 :}
-                |
-                elemento_valor:ev
+                | elemento_valor:ev
                 {: 
                     java.util.List<Object> lista = new java.util.ArrayList<>();
                     lista.add(ev);
@@ -121,73 +141,166 @@ lista_valores ::= lista_valores:lv COMA elemento_valor:ev
 elemento_valor ::= valor:v {: RESULT = v; :} ;
 
 campos_select ::= ASTERISCO {: RESULT = "*"; :}
-                | lista_campos:lc {: RESULT = lc; :} ;
+                | lista_campos_select:lcs {: RESULT = lcs; :} ;
+
+lista_campos_select ::= lista_campos_select:lcs COMA elemento_select:es 
+                      {: 
+                          java.util.List<String> lista = (java.util.List<String>) lcs;
+                          lista.add(es.toString());
+                          RESULT = lista;
+                      :}
+                      | elemento_select:es 
+                      {: 
+                          java.util.List<String> lista = new java.util.ArrayList<>();
+                          lista.add(es.toString());
+                          RESULT = lista;
+                      :} ;
+
+elemento_select ::= nombre_compuesto:nc 
+                    {: RESULT = nc; :}
+                  | nombre_compuesto:nc AS ID:id 
+                    {: RESULT = nc; :}
+                  | nombre_compuesto:nc ASTERISCO valor:v AS ID:id 
+                    {: RESULT = nc; :}
+                  | COUNT PAR_A ASTERISCO PAR_C 
+                    {: RESULT = "COUNT"; :}
+                  | COUNT PAR_A ASTERISCO PAR_C AS ID:id 
+                    {: RESULT = "COUNT"; :} ;
 
 lista_campos ::= lista_campos:lc COMA nombre_compuesto:nc
+               {: 
+                   java.util.List<String> lista = (java.util.List<String>) lc;
+                   lista.add(nc.toString());
+                   RESULT = lista;
+               :}
+               | nombre_compuesto:nc 
+               {: 
+                   java.util.List<String> lista = new java.util.ArrayList<>();
+                   lista.add(nc.toString());
+                   RESULT = lista;
+               :} ;
+
+lista_columnas ::= lista_columnas:lc COMA elemento_columna:ec 
                 {: 
                     java.util.List<String> lista = (java.util.List<String>) lc;
-                    lista.add(nc.toString());
+                    lista.add(ec.toString());
                     RESULT = lista;
                 :}
-               |
-                nombre_compuesto:nc 
+                 | elemento_columna:ec 
                 {: 
                     java.util.List<String> lista = new java.util.ArrayList<>();
-                    lista.add(nc.toString());
+                    lista.add(ec.toString());
                     RESULT = lista;
                 :} ;
 
-lista_columnas ::= lista_columnas:lc COMA columna:c 
-                {: 
-                    java.util.List<String> lista = (java.util.List<String>) lc;
-                    lista.add(c.toString());
-                    RESULT = lista;
-                :}
-                 |
-                columna:c 
-                {: 
-                    java.util.List<String> lista = new java.util.ArrayList<>();
-                    lista.add(c.toString());
-                    RESULT = lista;
-                :} ;
+/* Coreccion de reglas para update */
 
-lista_order ::= lista_order:lo COMA elemento_order:eo {: RESULT = eo; :}
-              | elemento_order:eo {: RESULT = eo; :} ;
+lista_asignaciones ::= lista_asignaciones:la COMA asignacion:a
+                     {: 
+                         java.util.List<Object[]> lista = (java.util.List<Object[]>) la;
+                         lista.add((Object[]) a);
+                         RESULT = lista;
+                     :}
+                     |
+                     asignacion:a
+                     {: 
+                         java.util.List<Object[]> lista = new java.util.ArrayList<>();
+                         lista.add((Object[]) a);
+                         RESULT = lista;
+                     :} ;
 
-columna ::= ID:id tipo_dato:td
-          {: RESULT = id + ":" + td + ":false"; :}
-          |
-          ID:id tipo_dato:td PRIMARY KEY 
-          {: RESULT = id + ":" + td + ":true"; :} ;
+asignacion ::= nombre_compuesto:nc IGUAL valor:v 
+               {: 
+                   Object[] asig = new Object[2];
+                   asig[0] = nc;
+                   asig[1] = v;
+                   RESULT = asig;
+               :} ;
+
+elemento_columna ::= columna:c 
+                    {: RESULT = c; :}
+                   | llave_foranea:lf 
+                    {: RESULT = "FK:" + lf; :} ;
+
+columna ::= ID:id tipo_dato:td 
+            {: RESULT = id + ":" + td + ":false"; :}
+          | ID:id tipo_dato:td PRIMARY KEY 
+            {: RESULT = id + ":" + td + ":true"; :}
+          | ID:id tipo_dato:td PRIMARY KEY AUTO_INCREMENT 
+            {: RESULT = id + ":" + td + ":true"; :}
+          | ID:id tipo_dato:td NOT NULL 
+            {: RESULT = id + ":" + td + ":false"; :}
+          | ID:id tipo_dato:td AUTO_INCREMENT 
+          {: RESULT = id + ":" + td + ":false"; :} ;
+
+llave_foranea ::= FOREIGN KEY PAR_A ID:id_fk PAR_C REFERENCES ID:id_ref PAR_A ID:id_col_ref PAR_C 
+                {: RESULT = id_fk + ":" + id_ref + ":" + id_col_ref; :} ;
 
 tipo_dato ::= INT {: RESULT = "INT"; :}
-            | VARCHAR PAR_A ENTERO:e PAR_C {: RESULT = "VARCHAR"; :}
+            | VARCHAR PAR_A ENTERO:e PAR_C {: RESULT = "VARCHAR-" + e; :} 
             | FLOAT {: RESULT = "FLOAT"; :}
-            | FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "FLOAT_DECIMAL"; :} ;
+            | FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "FLOAT_DECIMAL"; :}
+            | DECIMAL PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "DECIMAL"; :} ;
 
-clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2 {: RESULT = nt; :}
-                | /* vacio */ {: RESULT = null; :} ;
+/* --- CLAUSULAS COMPLEMENTARIAS (con condiciones lógicas) --- */
+clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2 
+                    {: RESULT = nt; :}
+                | /* vacio */ 
+                {: RESULT = null; :} ;
 
-clausula_where ::= WHERE nombre_compuesto:nc comparador:cp valor:v {: RESULT = v; :}
-                | /* vacio */ {: RESULT = null; :} ;
+clausula_where ::= WHERE condicion_logica:c 
+                {: RESULT = c; :}
+                 | /* vacio */ 
+                {: RESULT = null; :} ;
 
-comparador ::= IGUAL {: RESULT = "="; :} 
-             | MAYOR {: RESULT = ">"; :} 
-             | MENOR {: RESULT = "<"; :} ;
+condicion_logica ::= condicion_logica AND termino_condicion
+                   | condicion_logica OR termino_condicion
+                   | termino_condicion ;
 
-clausula_order ::= ORDER BY lista_order:lo {: RESULT = lo; :}
+termino_condicion ::= nombre_compuesto comparador valor
+                    | PAR_A condicion_logica PAR_C
+                    | nombre_compuesto ; 
+
+clausula_group ::= GROUP BY lista_campos:lc
+                    {: RESULT = lc; :}
                  | /* vacio */ {: RESULT = null; :} ;
 
-elemento_order ::= nombre_compuesto:nc {: RESULT = nc; :}
-                 | nombre_compuesto:nc ASC {: RESULT = nc; :}
-                 | nombre_compuesto:nc DESC {: RESULT = nc; :} ;
+comparador ::= IGUAL 
+                {: RESULT = "="; :} 
+             | MAYOR 
+            {: RESULT = ">"; :} 
+             | MENOR 
+             {: RESULT = "<"; :} ;
 
-valor ::= ENTERO:e {: RESULT=e; :} 
-        | NUREAL:n {: RESULT=n; :}
-        | LITERAL_STR:s {: RESULT=s; :} 
+clausula_order ::= ORDER BY lista_order:lo 
+                    {: RESULT = lo; :}
+                 | /* vacio */ 
+                {: RESULT = null; :} ;
+
+lista_order ::= lista_order:lo COMA elemento_order:eo 
+                {: RESULT = eo; :}
+              | elemento_order:eo 
+                {: RESULT = eo; :} ;
+
+elemento_order ::= nombre_compuesto:nc 
+                {: RESULT = nc; :}
+                 | nombre_compuesto:nc ASC 
+                {: RESULT = nc; :}
+                 | nombre_compuesto:nc DESC 
+                 {: RESULT = nc; :} ;
+
+valor ::= ENTERO:e 
+            {: RESULT=e; :} 
+        | NUREAL:n 
+            {: RESULT=n; :}
+        | LITERAL_STR:s 
+        {: RESULT=s; :} 
         | ID:i {: RESULT=i; :} ;
 
-nombre_tabla ::= ID:d {: RESULT = d; :} ;
+nombre_tabla ::= ID:d 
+                {: RESULT = d; :} ;
 
-nombre_compuesto ::= ID:id {: RESULT = id; :}
-                   | ID:id1 PUNTO ID:id2 {: RESULT = id2; :} ;
+nombre_compuesto ::= ID:id 
+                    {: RESULT = id; :}
+                   | ID:id1 PUNTO ID:id2 
+                   {: RESULT = id2; :} ;
