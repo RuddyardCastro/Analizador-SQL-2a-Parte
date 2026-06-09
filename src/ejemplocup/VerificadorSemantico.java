@@ -16,7 +16,7 @@ public class VerificadorSemantico {
     /* Modulo 1: BASE DE DATOS (GENERAL) */
     public static void registrarCreateDatabase(String id) {
         if (basesDeDatos.containsKey(id)) {
-            System.err.println("ERROR Semantico: M1 - No se puede crear dos veces la misma base de datos: " + id);
+            System.err.println("ERROR Semantico: Modulo 1 - No se puede crear dos veces la misma base de datos: " + id);
         } else {
             basesDeDatos.put(id, true);
             System.out.println("Semantico OK: Base de datos creada: " + id);
@@ -25,7 +25,7 @@ public class VerificadorSemantico {
 
     public static void registrarDropDatabase(String id) {
         if (!basesDeDatos.containsKey(id)) {
-            System.err.println("ERROR Semantico: M1 - No se puede eliminar una base de datos que no existe: " + id);
+            System.err.println("ERROR Semantico: Modulo 1 - No se puede eliminar una base de datos que no existe: " + id);
         } else {
             basesDeDatos.remove(id);
             if (id.equals(baseDatosEnUso)) baseDatosEnUso = null;
@@ -36,7 +36,7 @@ public class VerificadorSemantico {
     /* Modulo 2: BASE DE DATOS EN USO */
     public static void registrarUseDatabase(String id) {
         if (!basesDeDatos.containsKey(id)) {
-            System.err.println("ERROR Semantico: M1/M2 - No puedes usar '" + id + "' porque no se ha creado.");
+            System.err.println("ERROR Semantico: Modulo 1/Mmodulo 2 - No puedes usar '" + id + "' porque no se ha creado.");
             return;
         }
         baseDatosEnUso = id;
@@ -45,7 +45,7 @@ public class VerificadorSemantico {
 
     public static boolean verificarBaseDatosEnUso() {
         if (baseDatosEnUso == null) {
-            System.err.println("ERROR Semantico: M2 - No hay una base de datos en uso. Selecciona una con USE primero.");
+            System.err.println("ERROR Semantico: Modlo 2 - No hay una base de datos en uso. Selecciona una con USE primero.");
             return false;
         }
         return true;
@@ -56,7 +56,7 @@ public class VerificadorSemantico {
         if (!verificarBaseDatosEnUso()) return false;
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
         if (tablasCampos.containsKey(claveTabla)) {
-            System.err.println("ERROR Semantico: M3 - No se puede crear dos veces la misma tabla: " + nombreTabla);
+            System.err.println("ERROR Semantico: Modulo 3 - No se puede crear dos veces la misma tabla: " + nombreTabla);
             return false;
         }
         tablasCampos.put(claveTabla, new ArrayList<>());
@@ -68,7 +68,7 @@ public class VerificadorSemantico {
         if (!verificarBaseDatosEnUso()) return false;
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
         if (!tablasCampos.containsKey(claveTabla)) {
-            System.err.println("ERROR Semantico: M3 - No se puede " + contexto + " porque la tabla '" + nombreTabla + "' no existe.");
+            System.err.println("ERROR Semantico: Modulo 3 - No se puede " + contexto + " porque la tabla '" + nombreTabla + "' no existe.");
             return false;
         }
         return true;
@@ -81,13 +81,13 @@ public class VerificadorSemantico {
 
         List<String> columnas = tablasCampos.get(claveTabla);
         if (columnas.contains(columna)) {
-            System.err.println("ERROR Semantico: M4 - No se pueden crear campos duplicados en la tabla: " + columna);
+            System.err.println("ERROR Semantico: Modulo 4 - No se pueden crear campos duplicados en la tabla: " + columna);
             return;
         }
 
         if (isPrimaryKey) {
             if (llavesPrimarias.getOrDefault(claveTabla, false)) {
-                System.err.println("ERROR Semantico: M4 - No se puede definir más de un campo como PRIMARY KEY en la tabla " + nombreTabla);
+                System.err.println("ERROR Semantico: Modulo 4 - No se puede definir más de un campo como PRIMARY KEY en la tabla " + nombreTabla);
             } else {
                 llavesPrimarias.put(claveTabla, true);
             }
@@ -105,31 +105,39 @@ public class VerificadorSemantico {
         }
     }
 
-     public static void verificarInsert(String nombreTabla, List<String> campos, List<Object> valores) {
+    
+    public static void verificarInsert(String nombreTabla, List<String> campos, List<Object> valores) {
         if (!verificarTablaExiste(nombreTabla, "insertar")) return;
-        String claveTabla = baseDatosEnUso + "." + nombreTabla;
-        List<String> columnasTabla = tablasCampos.get(claveTabla);
-        
-        if (campos.size() != valores.size()) {
+        String claveTabla = baseDatosEnUso + "." + nombreTabla; // 
+        List<String> columnasTabla = tablasCampos.get(claveTabla); // 
+
+        // --- 1. NUEVO: Soporte para inserción implícita ---
+        // Si 'campos' viene nulo, usamos todos los campos registrados en la tabla
+        if (campos == null) {
+            campos = columnasTabla;
+        }
+        // --------------------------------------------------
+
+        if (campos.size() != valores.size()) { // 
             System.err.println("ERROR Semantico: Modulo 4 - El numero de valores no coincide con el numero de campos especificados.");
-            return;
+            return; // [cite: 273]
         }
 
-        List<String> camposVistos = new ArrayList<>();
-        for (int i = 0; i < campos.size(); i++) {
-            String campo = campos.get(i);
-            Object valor = valores.get(i);
+        List<String> camposVistos = new ArrayList<>(); // [cite: 273]
+        for (int i = 0; i < campos.size(); i++) { // [cite: 274]
+            String campo = campos.get(i); // [cite: 274]
+            Object valor = valores.get(i); // [cite: 275]
 
-            if (!columnasTabla.contains(campo)) {
+            if (!columnasTabla.contains(campo)) { // [cite: 275]
                 System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' no existe en la tabla.");
-            } else {
-                verificarTipoDato(nombreTabla, campo, valor);
+            } else { // [cite: 276]
+                verificarTipoDato(nombreTabla, campo, valor); // [cite: 276]
             }
-            if (camposVistos.contains(campo)) {
+            if (camposVistos.contains(campo)) { // [cite: 277]
                 System.err.println("ERROR Semantico: Modulo 4 - No se puede repetir un campo dentro del mismo INSERT: " + campo);
-            }
-            camposVistos.add(campo);
-        }
+            } // [cite: 278]
+            camposVistos.add(campo); // [cite: 278]
+        } // [cite: 279]
     }
 
     public static void verificarUpdate(String nombreTabla, String campoSet) {

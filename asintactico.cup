@@ -77,6 +77,7 @@ inicio ::= inicio sentencia
 sentencia ::= instruccion PUNTOYCOMA {: :} ;
 
 instruccion ::= 
+/*En este caso se usa la forma mas comun como se escriben las sentencias como base */
     SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:c clausula_group:cg clausula_order:co
     {: RESULT = cs; :}
    | UPDATE nombre_tabla:nt SET lista_asignaciones:la clausula_where:c
@@ -87,7 +88,11 @@ instruccion ::=
     {: RESULT = id; :}
   | CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
     {: RESULT = lc; :}
-  | INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C
+  | INSERT INTO nombre_tabla:nt PAR_A lista_campos:lc PAR_C VALUES PAR_A lista_valores:lv PAR_C // 
+    {: RESULT = lv; :} // 
+  // --- 3. NUEVA REGLA PARA INSERCIÓN IMPLÍCITA ---
+  |
+  INSERT INTO nombre_tabla:nt VALUES PAR_A lista_valores:lv PAR_C
     {: RESULT = lv; :} ;
 
 lista_valores ::= lista_valores:lv COMA elemento_valor:ev
@@ -98,12 +103,12 @@ lista_valores ::= lista_valores:lv COMA elemento_valor:ev
 elemento_valor ::= valor:v 
                     {: RESULT = v; :} ;
 
-/* --- MANEJO DE SELECT Y CAMPOS --- */
+/* Manejo de los campos select */
 campos_select ::= ASTERISCO 
                     {: RESULT = "*"; :}
                 | lista_campos_select:lcs 
                     {: RESULT = lcs; :} ;
-
+/*Listas creadas */
 lista_campos_select ::= lista_campos_select:lcs COMA elemento_select:es 
                         {: RESULT = es; :}
                       | elemento_select:es 
@@ -125,7 +130,7 @@ lista_campos ::= lista_campos:lc COMA nombre_compuesto:nc
                | nombre_compuesto:nc 
                {: RESULT = nc; :} ;
 
-/* --- CREACION DE TABLAS (DDL) --- */
+/* Esta ayuda para la creacion de las tablas */
 lista_columnas ::= lista_columnas:lc COMA elemento_columna:ec 
                     {: RESULT = ec; :}
                  | elemento_columna:ec 
@@ -134,7 +139,7 @@ lista_columnas ::= lista_columnas:lc COMA elemento_columna:ec
 
 lista_asignaciones ::= lista_asignaciones COMA asignacion
                      | asignacion ;
-
+/*Esta ayuda a siganr cosas la cre por el update*/
 asignacion ::= nombre_compuesto:nc IGUAL valor:v 
                 {: RESULT = v; :} ;
 
@@ -166,7 +171,7 @@ tipo_dato ::= INT {: RESULT = "INT"; :}
             | DECIMAL PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C 
             {: RESULT = "DECIMAL"; :} ;
 
-/* --- CLAUSULAS COMPLEMENTARIAS --- */
+/* Estas se agregaron por lo que decia el archivo dle proy */
 clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2 
                     {: RESULT = nt; :}
                 | /* vacio */ 

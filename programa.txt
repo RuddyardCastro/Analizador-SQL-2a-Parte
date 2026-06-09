@@ -2,15 +2,12 @@ CREATE DATABASE mi_base_de_datos;
 USE mi_base_de_datos;
 CREATE TABLE Categorias ( id_categoria INT PRIMARY KEY AUTO_INCREMENT, nombre_categoria VARCHAR(100) NOT NULL );
 CREATE TABLE Productos ( id_producto INT PRIMARY KEY AUTO_INCREMENT, nombre_producto VARCHAR(150) NOT NULL, precio DECIMAL(10, 2), id_categoria INT, FOREIGN KEY (id_categoria) REFERENCES Categorias(id_categoria) );
+INSERT INTO Productos (id_producto,nombre_producto, precio, id_categoria) VALUES (1,'Laptop', 1200.00, 1);
+UPDATE Productos SET precio = 25.50 WHERE id_producto = 1;
+SELECT nombre_producto, precio FROM Productos;
 
-INSERT INTO Categorias (nombre_categoria) VALUES ('Electrónica');
-INSERT INTO Productos (nombre_producto, precio, id_categoria) VALUES ('Laptop', 1200.00, 1);
+SELECT nombre_producto AS NombreProducto, precio * 0.12 AS Impuesto FROM Productos;
+SELECT Productos.nombre_producto, Categorias.nombre_categoria FROM Productos INNER JOIN Categorias ON Productos.id_categoria = Categorias.id_categoria;
+SELECT Categorias.nombre_categoria, COUNT(*) AS TotalProductos FROM Productos INNER JOIN Categorias ON Productos.id_categoria = Categorias.id_categoria GROUP BY Categorias.id_categoria;
+INSERT INTO Categorias (id_categoria,nombre_categoria) VALUES (1,'Electrónica');
 
-SELECT columna1, columna2 FROM nombre_tabla;
-SELECT Nombre AS NombreCompleto, Salario * 0.12 AS Impuesto FROM Empleados;
-SELECT Empleados.Nombre, Departamentos.NombreDep FROM Empleados INNER JOIN Departamentos ON Empleados.IdDepto = Departamentos.Id;
-SELECT Ciudad, COUNT(*) AS TotalClientes FROM Clientes GROUP BY Ciudad;
-
-UPDATE nombre_tabla SET columna1 = valor1, columna2 = valor2 WHERE condicion;
-UPDATE Productos SET precio = 25.50 WHERE id_producto = 104;
-    

@@ -135,7 +135,7 @@ NumReal = {Entero} "." [0-9]*
     "<"                    { System.out.print("< "); return symbol(sym.MENOR); }
 
     /* Cadenas de texto con comilla simple */
-       "'" [^]* "'"          { System.out.print("LITERAL_STR ");
+    \'[^\']*\'         { System.out.print("LITERAL_STR ");
                             return symbol(sym.LITERAL_STR, yytext()); }
 
     /* Identificadores y Números */
