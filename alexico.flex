@@ -114,7 +114,12 @@ NumReal = {Entero} "." [0-9]*
     "REFERENCES" | "references" { System.out.print("REFERENCES "); return symbol(sym.REFERENCES); }
     "AS" | "as"            { System.out.print("AS "); return symbol(sym.AS); }
     "GROUP" | "group"      { System.out.print("GROUP "); return symbol(sym.GROUP); }
-    "COUNT" | "count"      { System.out.print("COUNT "); return symbol(sym.COUNT); }
+    "COUNT" | "count"      { System.out.print("COUNT "); 
+                            return symbol(sym.COUNT); }
+    "AND" | "and"      { System.out.print("AND "); 
+                            return symbol(sym.AND); }
+    "OR" | "or"      { System.out.print("OR "); 
+                            return symbol(sym.OR); }
 
     /* 3. OPERADORES Y SÍMBOLOS SQL */
     "*"                    { System.out.print("* "); return symbol(sym.ASTERISCO); }

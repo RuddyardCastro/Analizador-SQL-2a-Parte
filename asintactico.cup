@@ -50,7 +50,7 @@ terminal           INT, VARCHAR, PRIMARY, KEY;
 
 /* AGREGADOS PARA COMPLETAR OBLIGATORIOS */
 terminal           AUTO_INCREMENT, NOT, NULL, DECIMAL, FOREIGN, REFERENCES, AS, GROUP, COUNT;
-
+terminal AND, OR;
 terminal Integer   ENTERO;
 terminal Float     NUREAL;
 terminal String    ID, LITERAL_STR;
@@ -65,6 +65,11 @@ non terminal Object   lista_valores, elemento_valor;
 /* nuevos terminales listado para que puedan cumplic con lo de docx  */
 non terminal Object   clausula_group, lista_campos_select, elemento_select, elemento_columna, llave_foranea;
 
+
+non terminal       lista_asignaciones, asignacion, condicion_logica, termino_condicion;
+
+
+
 /* --- Estructura Inicial (Recursiva a la izquierda) --- */
 inicio ::= inicio sentencia 
          | sentencia ;
@@ -72,10 +77,10 @@ inicio ::= inicio sentencia
 sentencia ::= instruccion PUNTOYCOMA {: :} ;
 
 instruccion ::= 
-    SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_group:cg clausula_order:co
+    SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:c clausula_group:cg clausula_order:co
     {: RESULT = cs; :}
-  | UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
-    {: RESULT = v; :}
+   | UPDATE nombre_tabla:nt SET lista_asignaciones:la clausula_where:c
+    {: RESULT = la; :}
   | CREATE DATABASE ID:id
     {: RESULT = id; :}
   | USE ID:id
@@ -90,20 +95,30 @@ lista_valores ::= lista_valores:lv COMA elemento_valor:ev
                 | elemento_valor:ev
                 {: RESULT = ev; :} ;
 
-elemento_valor ::= valor:v {: RESULT = v; :} ;
+elemento_valor ::= valor:v 
+                    {: RESULT = v; :} ;
 
 /* --- MANEJO DE SELECT Y CAMPOS --- */
-campos_select ::= ASTERISCO {: RESULT = "*"; :}
-                | lista_campos_select:lcs {: RESULT = lcs; :} ;
+campos_select ::= ASTERISCO 
+                    {: RESULT = "*"; :}
+                | lista_campos_select:lcs 
+                    {: RESULT = lcs; :} ;
 
-lista_campos_select ::= lista_campos_select:lcs COMA elemento_select:es {: RESULT = es; :}
-                      | elemento_select:es {: RESULT = es; :} ;
+lista_campos_select ::= lista_campos_select:lcs COMA elemento_select:es 
+                        {: RESULT = es; :}
+                      | elemento_select:es 
+                        {: RESULT = es; :} ;
 
-elemento_select ::= nombre_compuesto:nc {: RESULT = nc; :}
-                  | nombre_compuesto:nc AS ID:id {: RESULT = nc; :}
-                  | nombre_compuesto:nc ASTERISCO valor:v AS ID:id {: RESULT = nc; :}
-                  | COUNT PAR_A ASTERISCO PAR_C {: RESULT = "COUNT"; :}
-                  | COUNT PAR_A ASTERISCO PAR_C AS ID:id {: RESULT = "COUNT"; :} ;
+elemento_select ::= nombre_compuesto:nc 
+                    {: RESULT = nc; :}
+                  | nombre_compuesto:nc AS ID:id 
+                    {: RESULT = nc; :}
+                  | nombre_compuesto:nc ASTERISCO valor:v AS ID:id 
+                    {: RESULT = nc; :}
+                  | COUNT PAR_A ASTERISCO PAR_C 
+                    {: RESULT = "COUNT"; :}
+                  | COUNT PAR_A ASTERISCO PAR_C AS ID:id 
+                    {: RESULT = "COUNT"; :} ;
 
 lista_campos ::= lista_campos:lc COMA nombre_compuesto:nc
                {: RESULT = nc; :}
@@ -111,56 +126,107 @@ lista_campos ::= lista_campos:lc COMA nombre_compuesto:nc
                {: RESULT = nc; :} ;
 
 /* --- CREACION DE TABLAS (DDL) --- */
-lista_columnas ::= lista_columnas:lc COMA elemento_columna:ec {: RESULT = ec; :}
-                 | elemento_columna:ec {: RESULT = ec; :} ;
+lista_columnas ::= lista_columnas:lc COMA elemento_columna:ec 
+                    {: RESULT = ec; :}
+                 | elemento_columna:ec 
+                    {: RESULT = ec; :} ;
 
-elemento_columna ::= columna:c {: RESULT = c; :}
-                   | llave_foranea:lf {: RESULT = lf; :} ;
 
-columna ::= ID:id tipo_dato:td {: RESULT = id; :}
-          | ID:id tipo_dato:td PRIMARY KEY {: RESULT = id; :}
-          | ID:id tipo_dato:td PRIMARY KEY AUTO_INCREMENT {: RESULT = id; :}
-          | ID:id tipo_dato:td NOT NULL {: RESULT = id; :}
-          | ID:id tipo_dato:td AUTO_INCREMENT {: RESULT = id; :} ;
+lista_asignaciones ::= lista_asignaciones COMA asignacion
+                     | asignacion ;
 
-llave_foranea ::= FOREIGN KEY PAR_A ID:id_fk PAR_C REFERENCES ID:id_ref PAR_A ID:id_col_ref PAR_C {: RESULT = id_fk; :} ;
+asignacion ::= nombre_compuesto:nc IGUAL valor:v 
+                {: RESULT = v; :} ;
+
+elemento_columna ::= columna:c 
+                    {: RESULT = c; :}
+                   | llave_foranea:lf 
+                {: RESULT = lf; :} ;
+
+columna ::= ID:id tipo_dato:td 
+            {: RESULT = id; :}
+          | ID:id tipo_dato:td PRIMARY KEY 
+            {: RESULT = id; :}
+          | ID:id tipo_dato:td PRIMARY KEY AUTO_INCREMENT 
+            {: RESULT = id; :}
+          | ID:id tipo_dato:td NOT NULL 
+            {: RESULT = id; :}
+          | ID:id tipo_dato:td AUTO_INCREMENT 
+            {: RESULT = id; :} ;
+
+llave_foranea ::= FOREIGN KEY PAR_A ID:id_fk PAR_C REFERENCES ID:id_ref PAR_A ID:id_col_ref PAR_C 
+                {: RESULT = id_fk; :} ;
 
 tipo_dato ::= INT {: RESULT = "INT"; :}
-            | VARCHAR PAR_A ENTERO:e PAR_C {: RESULT = e; :}
+            | VARCHAR PAR_A ENTERO:e PAR_C 
+            {: RESULT = e; :}
             | FLOAT {: RESULT = "FLOAT"; :}
-            | FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "FLOAT_DECIMAL"; :}
-            | DECIMAL PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "DECIMAL"; :} ;
+            | FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C 
+            {: RESULT = "FLOAT_DECIMAL"; :}
+            | DECIMAL PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C 
+            {: RESULT = "DECIMAL"; :} ;
 
 /* --- CLAUSULAS COMPLEMENTARIAS --- */
-clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2 {: RESULT = nt; :}
-                | /* vacio */ {: RESULT = null; :} ;
+clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2 
+                    {: RESULT = nt; :}
+                | /* vacio */ 
+                {: RESULT = null; :} ;
 
-clausula_where ::= WHERE nombre_compuesto:nc comparador:cp valor:v {: RESULT = v; :}
-                | /* vacio */ {: RESULT = null; :} ;
+clausula_where ::= WHERE condicion_logica:c 
+                {: RESULT = c; :}
+                 | /* vacio */ 
+                {: RESULT = null; :} ;
 
-clausula_group ::= GROUP BY lista_campos:lc {: RESULT = lc; :}
-                 | /* vacio */ {: RESULT = null; :} ;
+condicion_logica ::= condicion_logica AND termino_condicion
+                   | condicion_logica OR termino_condicion
+                   | termino_condicion ;
 
-comparador ::= IGUAL  {: RESULT = "="; :} 
-             | MAYOR  {: RESULT = ">"; :} 
-             | MENOR  {: RESULT = "<"; :} ;
+termino_condicion ::= nombre_compuesto comparador valor
+                    | PAR_A condicion_logica PAR_C
+                    | ID  ;   
+    
+clausula_group ::= GROUP BY lista_campos:lc 
+                    {: RESULT = lc; :}
+                 | /* vacio */ 
+                {: RESULT = null; :} ;
 
-clausula_order ::= ORDER BY lista_order:lo {: RESULT = lo; :}
-                 | /* vacio */ {: RESULT = null; :} ;
+comparador ::= IGUAL  
+                {: RESULT = "="; :} 
+             | MAYOR  
+                {: RESULT = ">"; :} 
+             | MENOR  
+                {: RESULT = "<"; :} ;
 
-lista_order ::= lista_order:lo COMA elemento_order:eo {: RESULT = eo; :}
-              | elemento_order:eo {: RESULT = eo; :} ;
+clausula_order ::= ORDER BY lista_order:lo 
+                    {: RESULT = lo; :}
+                 | /* vacio */ 
+                {: RESULT = null; :} ;
 
-elemento_order ::= nombre_compuesto:nc {: RESULT = nc; :}
-                 | nombre_compuesto:nc ASC {: RESULT = nc; :}
-                 | nombre_compuesto:nc DESC {: RESULT = nc; :} ;
+lista_order ::= lista_order:lo COMA elemento_order:eo 
+                {: RESULT = eo; :}
+              | elemento_order:eo 
+                {: RESULT = eo; :} ;
 
-valor ::= ENTERO:e      {: RESULT=e; :} 
-        | NUREAL:n      {: RESULT=n; :}
-        | LITERAL_STR:s {: RESULT=s; :} 
-        | ID:i          {: RESULT=i; :} ;
+elemento_order ::= nombre_compuesto:nc 
+                {: RESULT = nc; :}
+                 | nombre_compuesto:nc ASC 
+                {: RESULT = nc; :}
+                 | nombre_compuesto:nc DESC 
+                {: RESULT = nc; :} ;
 
-nombre_tabla ::= ID:d   {: RESULT = d; :} ;
+valor ::= ENTERO:e      
+        {: RESULT=e; :} 
+        | NUREAL:n      
+        {: RESULT=n; :}
+        | LITERAL_STR:s 
+        {: RESULT=s; :} 
+        | ID:i          
+        {: RESULT=i; :} ;
 
-nombre_compuesto ::= ID:id {: RESULT = id; :}
-                   | ID:id1 PUNTO ID:id2 {: RESULT = id2; :} ;
+nombre_tabla ::= ID:d   
+        {: RESULT = d; :} ;
+
+nombre_compuesto ::= ID:id 
+        {: RESULT = id; :}
+       | ID:id1 PUNTO ID:id2 
+        {: RESULT = id2; :} ;

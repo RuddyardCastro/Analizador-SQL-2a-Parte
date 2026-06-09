@@ -46,18 +46,21 @@ terminal           ORDER, BY, ASC, DESC;
 terminal           MAYOR, MENOR;
 terminal           INT, VARCHAR, PRIMARY, KEY;
 terminal           AUTO_INCREMENT, NOT, NULL, DECIMAL, FOREIGN, REFERENCES, AS, GROUP, COUNT;
-
+terminal           AND, OR;   // <-- importante para condiciones compuestas
 terminal Integer   ENTERO;
 terminal Float     NUREAL;
 terminal String    ID, LITERAL_STR;
 
+/* No terminales (incluyendo los nuevos) */
 non terminal Object   inicio, sentencia, instruccion, clausula_where, valor, lista_campos, nombre_tabla;
 non terminal Object   nombre_compuesto, clausula_join;
 non terminal Object   clausula_order, lista_order, elemento_order, comparador;
 non terminal Object   definicion_tabla, lista_columnas, columna, tipo_dato, campos_select;
 non terminal Object   lista_valores, elemento_valor;
 non terminal Object   clausula_group, lista_campos_select, elemento_select, elemento_columna, llave_foranea;
+non terminal Object   lista_asignaciones, asignacion, condicion_logica, termino_condicion;
 
+/* ------------ REGLAS DE PRODUCCIÓN (gramática extendida) ---------- */
 
 inicio ::= inicio sentencia 
          | sentencia ;
@@ -65,16 +68,19 @@ inicio ::= inicio sentencia
 sentencia ::= instruccion PUNTOYCOMA {: :} ;
 
 instruccion ::= 
-        SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:cw clausula_group:cg clausula_order:co
+        SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:c clausula_group:cg clausula_order:co
         {: 
             VerificadorSemantico.verificarTablaExiste(nt.toString(), "consultar");
             RESULT = cs;
         :}
-      | UPDATE nombre_tabla:nt SET nombre_compuesto:nc IGUAL valor:v clausula_where:cw
-        {: 
-            VerificadorSemantico.verificarUpdate(nt.toString(), nc.toString(), v);
-            RESULT = v;
-        :}
+        | UPDATE nombre_tabla:nt SET lista_asignaciones:la clausula_where:c
+    {: 
+        java.util.List<Object[]> asigns = (java.util.List<Object[]>) la;
+        for (Object[] asig : asigns) {
+            VerificadorSemantico.verificarUpdate(nt.toString(), asig[0].toString(), asig[1]);
+        }
+        RESULT = la;
+    :}
       | CREATE DATABASE ID:id
         {: 
             VerificadorSemantico.registrarCreateDatabase(id.toString());
@@ -139,11 +145,16 @@ lista_campos_select ::= lista_campos_select:lcs COMA elemento_select:es
                           RESULT = lista;
                       :} ;
 
-elemento_select ::= nombre_compuesto:nc {: RESULT = nc; :}
-                  | nombre_compuesto:nc AS ID:id {: RESULT = nc; :}
-                  | nombre_compuesto:nc ASTERISCO valor:v AS ID:id {: RESULT = nc; :}
-                  | COUNT PAR_A ASTERISCO PAR_C {: RESULT = "COUNT"; :}
-                  | COUNT PAR_A ASTERISCO PAR_C AS ID:id {: RESULT = "COUNT"; :} ;
+elemento_select ::= nombre_compuesto:nc 
+                    {: RESULT = nc; :}
+                  | nombre_compuesto:nc AS ID:id 
+                    {: RESULT = nc; :}
+                  | nombre_compuesto:nc ASTERISCO valor:v AS ID:id 
+                    {: RESULT = nc; :}
+                  | COUNT PAR_A ASTERISCO PAR_C 
+                    {: RESULT = "COUNT"; :}
+                  | COUNT PAR_A ASTERISCO PAR_C AS ID:id 
+                    {: RESULT = "COUNT"; :} ;
 
 lista_campos ::= lista_campos:lc COMA nombre_compuesto:nc
                 {: 
@@ -171,14 +182,35 @@ lista_columnas ::= lista_columnas:lc COMA elemento_columna:ec
                     RESULT = lista;
                 :} ;
 
-elemento_columna ::= columna:c {: RESULT = c; :}
-                   | llave_foranea:lf {: RESULT = "FK:" + lf; :} ;
+/* --- Nuevas reglas para múltiples asignaciones en UPDATE --- */
+lista_asignaciones ::= lista_asignaciones COMA asignacion:a
+                     {: 
+                         java.util.List<Object[]> lista = (java.util.List<Object[]>) RESULT;
+                         lista.add((Object[]) a);
+                         RESULT = lista;
+                     :}
+                     | asignacion:a
+                     {: 
+                         java.util.List<Object[]> lista = new java.util.ArrayList<>();
+                         lista.add((Object[]) a);
+                         RESULT = lista;
+                     :} ;
 
-columna ::= ID:id tipo_dato:td {: RESULT = id + ":" + td + ":false"; :}
-          | ID:id tipo_dato:td PRIMARY KEY {: RESULT = id + ":" + td + ":true"; :}
-          | ID:id tipo_dato:td PRIMARY KEY AUTO_INCREMENT {: RESULT = id + ":" + td + ":true"; :}
-          | ID:id tipo_dato:td NOT NULL {: RESULT = id + ":" + td + ":false"; :}
-          | ID:id tipo_dato:td AUTO_INCREMENT {: RESULT = id + ":" + td + ":false"; :} ;
+elemento_columna ::= columna:c 
+                    {: RESULT = c; :}
+                   | llave_foranea:lf 
+                    {: RESULT = "FK:" + lf; :} ;
+
+columna ::= ID:id tipo_dato:td 
+            {: RESULT = id + ":" + td + ":false"; :}
+          | ID:id tipo_dato:td PRIMARY KEY 
+            {: RESULT = id + ":" + td + ":true"; :}
+          | ID:id tipo_dato:td PRIMARY KEY AUTO_INCREMENT 
+            {: RESULT = id + ":" + td + ":true"; :}
+          | ID:id tipo_dato:td NOT NULL 
+            {: RESULT = id + ":" + td + ":false"; :}
+          | ID:id tipo_dato:td AUTO_INCREMENT 
+          {: RESULT = id + ":" + td + ":false"; :} ;
 
 llave_foranea ::= FOREIGN KEY PAR_A ID:id_fk PAR_C REFERENCES ID:id_ref PAR_A ID:id_col_ref PAR_C 
                 {: RESULT = id_fk + ":" + id_ref + ":" + id_col_ref; :} ;
@@ -189,11 +221,20 @@ tipo_dato ::= INT {: RESULT = "INT"; :}
             | FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "FLOAT_DECIMAL"; :}
             | DECIMAL PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "DECIMAL"; :} ;
 
+/* --- CLAUSULAS COMPLEMENTARIAS (con condiciones lógicas) --- */
 clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2 {: RESULT = nt; :}
                 | /* vacio */ {: RESULT = null; :} ;
 
-clausula_where ::= WHERE nombre_compuesto:nc comparador:cp valor:v {: RESULT = v; :}
-                | /* vacio */ {: RESULT = null; :} ;
+clausula_where ::= WHERE condicion_logica:c {: RESULT = c; :}
+                 | /* vacio */ {: RESULT = null; :} ;
+
+condicion_logica ::= condicion_logica AND termino_condicion
+                   | condicion_logica OR termino_condicion
+                   | termino_condicion ;
+
+termino_condicion ::= nombre_compuesto comparador valor
+                    | PAR_A condicion_logica PAR_C
+                    | ID ;   // Permite "WHERE condicion" (simple identificador)
 
 clausula_group ::= GROUP BY lista_campos:lc {: RESULT = lc; :}
                  | /* vacio */ {: RESULT = null; :} ;

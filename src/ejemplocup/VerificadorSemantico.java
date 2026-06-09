@@ -13,7 +13,7 @@ public class VerificadorSemantico {
     private static Map<String, String> tiposCampos = new HashMap<>();
     private static Map<String, Boolean> llavesPrimarias = new HashMap<>();
 
-    /* MÓDULO 1: BASE DE DATOS (GENERAL) */
+    /* Modulo 1: BASE DE DATOS (GENERAL) */
     public static void registrarCreateDatabase(String id) {
         if (basesDeDatos.containsKey(id)) {
             System.err.println("ERROR Semantico: M1 - No se puede crear dos veces la misma base de datos: " + id);
@@ -33,7 +33,7 @@ public class VerificadorSemantico {
         }
     }
 
-    /* MÓDULO 2: BASE DE DATOS EN USO */
+    /* Modulo 2: BASE DE DATOS EN USO */
     public static void registrarUseDatabase(String id) {
         if (!basesDeDatos.containsKey(id)) {
             System.err.println("ERROR Semantico: M1/M2 - No puedes usar '" + id + "' porque no se ha creado.");
@@ -51,7 +51,7 @@ public class VerificadorSemantico {
         return true;
     }
 
-    /* MÓDULO 3: TABLAS */
+    /* ModulO 3: TABLAS */
     public static boolean verificarCreateTable(String nombreTabla) {
         if (!verificarBaseDatosEnUso()) return false;
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
@@ -74,7 +74,7 @@ public class VerificadorSemantico {
         return true;
     }
 
-    /* MÓDULO 4: CAMPOS DE LA TABLA Y VERIFICACION DE TIPOS */
+    /* Modulo 4: CAMPOS DE LA TABLA Y VERIFICACION DE TIPOS */
     public static void registrarColumna(String nombreTabla, String columna, String tipo, boolean isPrimaryKey) {
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
         if (!tablasCampos.containsKey(claveTabla)) return;
@@ -164,12 +164,12 @@ public class VerificadorSemantico {
 
         // 1. Validar INT
         if (tipoEsperado.equals("INT") && !tipoValor.equals("INT")) {
-            System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un INT pero recibió " + tipoValor);
+            System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un INT pero recibio " + tipoValor);
             return false;
         }
         // 2. Validar FLOAT y DECIMAL
         if ((tipoEsperado.startsWith("FLOAT") || tipoEsperado.startsWith("DECIMAL")) && (!tipoValor.equals("FLOAT") && !tipoValor.equals("INT"))) {
-            System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un valor numérico real pero recibió " + tipoValor);
+            System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un valor numérico real pero recibio " + tipoValor);
             return false;
         }
         // 3. Validar VARCHAR y su longitud
