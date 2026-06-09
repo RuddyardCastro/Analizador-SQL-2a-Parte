@@ -111,40 +111,39 @@ public class VerificadorSemantico {
         String claveTabla = baseDatosEnUso + "." + nombreTabla; // 
         List<String> columnasTabla = tablasCampos.get(claveTabla); // 
 
-        // --- 1. NUEVO: Soporte para inserción implícita ---
-        // Si 'campos' viene nulo, usamos todos los campos registrados en la tabla
+        
         if (campos == null) {
             campos = columnasTabla;
         }
         // --------------------------------------------------
 
-        if (campos.size() != valores.size()) { // 
+        if (campos.size() != valores.size()) {
             System.err.println("ERROR Semantico: Modulo 4 - El numero de valores no coincide con el numero de campos especificados.");
-            return; // [cite: 273]
+            return; 
         }
-
-        List<String> camposVistos = new ArrayList<>(); // [cite: 273]
-        for (int i = 0; i < campos.size(); i++) { // [cite: 274]
-            String campo = campos.get(i); // [cite: 274]
-            Object valor = valores.get(i); // [cite: 275]
-
-            if (!columnasTabla.contains(campo)) { // [cite: 275]
+        /*Este array recorre el inser la linea */
+        List<String> camposVistos = new ArrayList<>();
+        for (int i = 0; i < campos.size(); i++) { 
+            String campo = campos.get(i); 
+            Object valor = valores.get(i); 
+/* se crea un if que verifica lso camppos */
+            if (!columnasTabla.contains(campo)) { 
                 System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' no existe en la tabla.");
-            } else { // [cite: 276]
-                verificarTipoDato(nombreTabla, campo, valor); // [cite: 276]
+            } else { 
+                verificarTipoDato(nombreTabla, campo, valor); 
             }
-            if (camposVistos.contains(campo)) { // [cite: 277]
+            if (camposVistos.contains(campo)) { 
                 System.err.println("ERROR Semantico: Modulo 4 - No se puede repetir un campo dentro del mismo INSERT: " + campo);
-            } // [cite: 278]
-            camposVistos.add(campo); // [cite: 278]
-        } // [cite: 279]
+            } 
+            camposVistos.add(campo); 
+        } 
     }
 
     public static void verificarUpdate(String nombreTabla, String campoSet) {
         if (!verificarTablaExiste(nombreTabla, "actualizar")) return;
         String claveTabla = baseDatosEnUso + "." + nombreTabla;
         if (!tablasCampos.get(claveTabla).contains(campoSet)) {
-            System.err.println("ERROR Semantico: M4 - No se puede actualizar un campo que no existe: " + campoSet);
+            System.err.println("ERROR Semantico: Modulo 4 - No se puede actualizar un campo que no existe: " + campoSet);
         }
     }
     
@@ -170,17 +169,18 @@ public class VerificadorSemantico {
             }
         }
 
-        // 1. Validar INT
+        /* Validar INT*/
         if (tipoEsperado.equals("INT") && !tipoValor.equals("INT")) {
             System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un INT pero recibio " + tipoValor);
             return false;
         }
-        // 2. Validar FLOAT y DECIMAL
+        /* Validar FLOAT y DECIMAL*/
+        /*esto me ayuda a verificar  que se resivan el tipo indicado de valor*/
         if ((tipoEsperado.startsWith("FLOAT") || tipoEsperado.startsWith("DECIMAL")) && (!tipoValor.equals("FLOAT") && !tipoValor.equals("INT"))) {
             System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un valor numérico real pero recibio " + tipoValor);
             return false;
         }
-        // 3. Validar VARCHAR y su longitud
+        /* Validar VARCHAR y su longitud*/
         if (tipoEsperado.startsWith("VARCHAR")) {
             if (!tipoValor.equals("VARCHAR")) {
                 System.err.println("ERROR Semantico: Modulo 4 - El campo '" + campo + "' espera un VARCHAR pero se le dio " + tipoValor);
