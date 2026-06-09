@@ -46,12 +46,12 @@ terminal           ORDER, BY, ASC, DESC;
 terminal           MAYOR, MENOR;
 terminal           INT, VARCHAR, PRIMARY, KEY;
 terminal           AUTO_INCREMENT, NOT, NULL, DECIMAL, FOREIGN, REFERENCES, AS, GROUP, COUNT;
-terminal           AND, OR;   // <-- importante para condiciones compuestas
+terminal           AND, OR;   
 terminal Integer   ENTERO;
 terminal Float     NUREAL;
 terminal String    ID, LITERAL_STR;
 
-/* No terminales (incluyendo los nuevos) */
+/* No terminales incluyendo los nuevos */
 non terminal Object   inicio, sentencia, instruccion, clausula_where, valor, lista_campos, nombre_tabla;
 non terminal Object   nombre_compuesto, clausula_join;
 non terminal Object   clausula_order, lista_order, elemento_order, comparador;
@@ -60,13 +60,16 @@ non terminal Object   lista_valores, elemento_valor;
 non terminal Object   clausula_group, lista_campos_select, elemento_select, elemento_columna, llave_foranea;
 non terminal Object   lista_asignaciones, asignacion, condicion_logica, termino_condicion;
 
-/* ------------ REGLAS DE PRODUCCIÓN (gramática extendida) ---------- */
+/* copias de la reglas de produccion */
 
 inicio ::= inicio sentencia 
          | sentencia ;
 
 sentencia ::= instruccion PUNTOYCOMA {: :} ;
+/*
 
+en este caso usando la logia de com es la forma normal de escribir una consulta SQL se llaman la as funciones en verificador semantico creadas 
+*/
 instruccion ::= 
         SELECT campos_select:cs FROM nombre_tabla:nt clausula_join:cj clausula_where:c clausula_group:cg clausula_order:co
         {: 
@@ -75,6 +78,18 @@ instruccion ::=
         :}
         | UPDATE nombre_tabla:nt SET lista_asignaciones:la clausula_where:c
     {: 
+
+    /*
+
+     llama a verificarUpdate que comprueba:
+
+que la tabla existe,
+
+que la columna a actualizar existe en esa tabla,
+
+que el tipo del valor coincide con el tipo de la columna.
+
+    */
         java.util.List<Object[]> asigns = (java.util.List<Object[]>) la;
         for (Object[] asig : asigns) {
             VerificadorSemantico.verificarUpdate(nt.toString(), asig[0].toString(), asig[1]);
@@ -92,17 +107,33 @@ instruccion ::=
             RESULT = id;
         :}
      | CREATE TABLE nombre_tabla:nt PAR_A lista_columnas:lc PAR_C
+
+     /*
+esta funcion no esta dnero de verificador semantico por que fue añanidida depues y me confundi en lo que ya tenia admenas que no la aceptatba por algun error
+entoces esta funcion la defini aqui
+
+
+
+
+
+     */
         {: 
             if (VerificadorSemantico.verificarCreateTable(nt.toString())) {
                 java.util.List<String> columnas = (java.util.List<String>) lc;
                 for(String col : columnas){
                     if(col.startsWith("FK:")) {
+                        /*es split es el simbol oque usa internamente el programam para separar y leer los 3 elementos es la , de la funcion*/
                         String[] partes = col.split(":");
+                        /*Esta parte es del create talba me ayuda a separar la forma en lo que lo recone 
+
+                        digamos en el caso del create table lelva un id un tipo de dato int ejemplo y un Fk el cual puede ir o no
+
+                        */
                         VerificadorSemantico.verificarLlaveForanea(nt.toString(), partes[1], partes[2], partes[3]);
                     } else {
-                        String[] datos = col.split(":"); // Ahora siempre tendrá 3 partes exactas
+                        String[] datos = col.split(":"); 
                         boolean pk = datos[2].equals("true");
-                        String tipoReal = datos[1].replace("-", ":"); // Restauramos a VARCHAR:150
+                        String tipoReal = datos[1].replace("-", ":"); 
                         VerificadorSemantico.registrarColumna(nt.toString(), datos[0], tipoReal, pk);
                     }
                 }
@@ -141,7 +172,8 @@ lista_valores ::= lista_valores:lv COMA elemento_valor:ev
 elemento_valor ::= valor:v {: RESULT = v; :} ;
 
 campos_select ::= ASTERISCO {: RESULT = "*"; :}
-                | lista_campos_select:lcs {: RESULT = lcs; :} ;
+                | lista_campos_select:lcs 
+                {: RESULT = lcs; :} ;
 
 lista_campos_select ::= lista_campos_select:lcs COMA elemento_select:es 
                       {: 
@@ -216,12 +248,20 @@ asignacion ::= nombre_compuesto:nc IGUAL valor:v
                    asig[1] = v;
                    RESULT = asig;
                :} ;
+/* esto son los resultados que da ya que son el fin de las derivacioens me ayudan a dar forma to a la respues que recive e impre el java
 
+
+      
+*/
 elemento_columna ::= columna:c 
                     {: RESULT = c; :}
                    | llave_foranea:lf 
                     {: RESULT = "FK:" + lf; :} ;
+/*Este codigo casi es igul por que es el encargado de devolver por separado las indruccion correspondiente y se las pasa arriba
 
+digamos , esto le pasa las anotcacion de como se ve la palabra a las funciones de arriba y con el true de arriba no avisa del error
+
+ */
 columna ::= ID:id tipo_dato:td 
             {: RESULT = id + ":" + td + ":false"; :}
           | ID:id tipo_dato:td PRIMARY KEY 
@@ -242,7 +282,7 @@ tipo_dato ::= INT {: RESULT = "INT"; :}
             | FLOAT PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "FLOAT_DECIMAL"; :}
             | DECIMAL PAR_A ENTERO:e1 COMA ENTERO:e2 PAR_C {: RESULT = "DECIMAL"; :} ;
 
-/* --- CLAUSULAS COMPLEMENTARIAS (con condiciones lógicas) --- */
+/* Clausalas quew se agregaron para el proyecto final son ewxtras  */
 clausula_join ::= INNER JOIN nombre_tabla:nt ON nombre_compuesto:n1 IGUAL nombre_compuesto:n2 
                     {: RESULT = nt; :}
                 | /* vacio */ 
